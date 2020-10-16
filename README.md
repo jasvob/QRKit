@@ -8,15 +8,15 @@ QRKit is an extension of Eigen C++ library that allows for efficient QR decompos
 ## Common sparsity patterns
 The common sparsity patterns QRKit can bring significant speed-up for are shown below.
 <p float="left">
-<img src="imgs/sparsity_patterns.png"  width="448" />
-<img src="imgs/sparsity_patterns_2.png"  width="448" />
+<img src="imgs/sparsity_patterns.png"  width="384" />
+<img src="imgs/sparsity_patterns_2.png"  width="384" />
 </p>
 
 ## Benchmark
 A simple benchmark showing speed-up potential of QRKit for matrix with a block-diagonal sparsity pattern.
 <p float="left">
-<img src="imgs/benchmark_graph.png"  width="448" />
-<img src="imgs/benchmark_table.png"  width="448" />
+<img src="imgs/benchmark_graph.png"  width="384" />
+<img src="imgs/benchmark_table.png"  width="384" />
 </p>
 
 ## Reference
