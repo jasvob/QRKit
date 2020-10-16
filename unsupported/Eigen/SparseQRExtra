@@ -1,0 +1,52 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
+// Copyright (C) 2017 Jan Svoboda <jan.svoboda@usi.ch>
+// Copyright (C) 2017 Andrew Fitzgibbon <awf@microsoft.com>
+// Copyright (C) 2016 Sergio Garrido Jurado <i52gajus@uco.es>
+//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef EIGEN_SPARSE_QR_EXTRA_MODULE_H
+#define EIGEN_SPARSE_QR_EXTRA_MODULE_H
+
+#include "../../Eigen/Sparse"
+
+#include "../../Eigen/src/Core/util/DisableStupidWarnings.h"
+
+#include <vector>
+#include <map>
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+#include <fstream>
+#include <sstream>
+
+/**
+  * \defgroup SparseQR_Module SparseQR module
+  *
+  * This module extends the Eigen default SparseQR with special QR solvers for block diagonal, row banded matrices and block angular.
+  *
+  * \code
+  * #include <Eigen/SparseQRExtra>
+  * \endcode
+  */
+
+#include "src/SparseQRExtra/SparseQRUtils.h"
+#include "src/SparseQRExtra/SparseQROrdering.h"
+#include "src/SparseQRExtra/BlockYTY.h"
+#include "src/SparseQRExtra/SparseBlockCOO.h"
+#include "src/SparseQRExtra/SparseBlockDiagonal.h"
+#include "src/SparseQRExtra/BlockMatrix1x2.h"
+#include "src/SparseQRExtra/SparseBlockYTY.h"
+#include "src/SparseQRExtra/BlockDiagonalSparseQR.h"
+#include "src/SparseQRExtra/BandedBlockedSparseQR.h"
+#include "src/SparseQRExtra/BlockedThinSparseQR.h"
+#include "src/SparseQRExtra/BlockedThinDenseQR.h"
+#include "src/SparseQRExtra/BlockAngularSparseQR.h"
+
+#include "../../Eigen/src/Core/util/ReenableStupidWarnings.h"
+
+#endif // EIGEN_SPARSE_QR_EXTRA_MODULE_H
