@@ -18,11 +18,12 @@
 #include <future>
 #include <random>
 
-#include "main.h"
+// Include Eigen testing
+#include "test/main.h"
 
 #include <Eigen/Eigen>
 #include <Eigen/SparseCore>
-#include <Eigen/SparseQRExtra>
+#include <QRKit/QRKit>
 
 using namespace Eigen;
 
