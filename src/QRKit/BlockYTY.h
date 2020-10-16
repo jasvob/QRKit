@@ -18,7 +18,7 @@
 * Stores matrices Y (m x n) and T (n x n) and number of zeros between main diagonal and subdiagonal parts of the block YTY.
 * Provides overloaded multiplication operator (*) allowing to easily perform the multiplication with a dense vector (Y * (T * (Y' * v)))
 */
-namespace Eigen {
+namespace QRKit {
   template <typename ScalarType, typename IndexType> class BlockYTY;
   template<typename BlockYTYType> struct BlockYTYProductReturnType;
   template<typename BlockYTYType> struct BlockYTYProductTransposeReturnType;

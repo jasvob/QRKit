@@ -21,11 +21,11 @@
 #include <future>
 #include <random>
 
-#include "main.h"
+#include "eigen/test/main.h"
 
 #include <Eigen/Eigen>
 #include <Eigen/SparseCore>
-#include <Eigen/SparseQRExtra>
+#include <QRKit/QRKit>
 #include <Eigen/LevenbergMarquardt>
 
 #ifdef WITH_SPQR
@@ -37,6 +37,7 @@
 
 
 using namespace Eigen;
+using namespace QRKit;
 
 #ifdef WITH_SPQR
 typedef SuiteSparse_long IndexType;

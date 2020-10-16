@@ -11,14 +11,14 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BLOCK_DIAGONAL_SPARSE_QR_H
-#define EIGEN_BLOCK_DIAGONAL_SPARSE_QR_H
+#ifndef QRKIT_BLOCK_DIAGONAL_SPARSE_QR_H
+#define QRKIT_BLOCK_DIAGONAL_SPARSE_QR_H
 
 #include "SparseQRUtils.h"
 #include "SparseQROrdering.h"
 #include "SparseBlockDiagonal.h"
 
-namespace Eigen {
+namespace QRKit {
 
 /**
   * \ingroup SparseQR_Module
@@ -416,7 +416,7 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
 
   // Q is rows x rows, R is rows x cols
   BlockMatrixType block = mat[0];
-  Eigen::TripletArray<Scalar> tripletsR(numBlocks * block.rows() * block.cols());
+  QRKit::TripletArray<Scalar> tripletsR(numBlocks * block.rows() * block.cols());
   m_Q.resize(mat.rows(), mat.rows());
   m_Q.reserve(this->m_blockInfo.nonZeroQEstimate);
 
@@ -542,6 +542,6 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
 }
 
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif

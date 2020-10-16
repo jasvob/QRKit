@@ -14,7 +14,7 @@
 #include <Eigen/Eigen>
 #include "SparseQRUtils.h"
 
-namespace Eigen {
+namespace QRKit {
   namespace SparseQROrdering {
     
     template <typename StorageIndex>

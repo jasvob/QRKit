@@ -13,7 +13,7 @@
 
 #include <Eigen/Eigen>
 
-namespace Eigen {
+namespace QRKit {
   /*
   * Container for storing 2x1 block matrices.
   * Such matrices are composed from two subblocks of arbitrary types specified as template arguments.

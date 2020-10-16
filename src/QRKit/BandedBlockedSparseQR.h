@@ -8,8 +8,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BANDED_BLOCKED_SPARSE_QR_H
-#define EIGEN_BANDED_BLOCKED_SPARSE_QR_H
+#ifndef QRKIT_BANDED_BLOCKED_SPARSE_QR_H
+#define QRKIT_BANDED_BLOCKED_SPARSE_QR_H
 
 #include <ctime>
 #include <typeinfo>
@@ -18,7 +18,7 @@
 #include "SparseQRUtils.h"
 #include "SparseQROrdering.h"
 
-namespace Eigen {
+namespace QRKit {
 
   template<typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols, bool MultiThreading> class BandedBlockedSparseQR;
   template<typename BandedBlockedSparseQRType> struct BandedBlockedSparseQRMatrixQReturnType;
@@ -444,7 +444,7 @@ namespace Eigen {
     m_pmat = (this->m_rowPerm * mat);
 
     // Triplet array for the matrix R
-    Eigen::TripletArray<Scalar, typename MatrixType::Index> Rvals(2 * mat.nonZeros());
+    QRKit::TripletArray<Scalar, typename MatrixType::Index> Rvals(2 * mat.nonZeros());
 
     // Dense QR solver used for each dense block 
     // jasvob ToDo: Template solver over block size
@@ -789,6 +789,6 @@ namespace Eigen {
 
   } // end namespace internal
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif

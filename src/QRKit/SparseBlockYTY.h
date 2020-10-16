@@ -15,7 +15,7 @@
 #include "SparseBlockCOO.h"
 #include "BlockYTY.h"
 
-namespace Eigen {
+namespace QRKit {
   template <typename ValueType, typename IndexType> class SparseBlocksYTY;
   template<typename SparseBlockYTYType> struct SparseBlockYTYProductReturnType;
   template<typename SparseBlockYTYType> struct SparseBlockYTYProductTransposeReturnType;

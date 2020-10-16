@@ -9,8 +9,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_SPARSE_QR_EXTRA_MODULE_H
-#define EIGEN_SPARSE_QR_EXTRA_MODULE_H
+#ifndef QRKIT_SPARSE_QR_EXTRA_MODULE_H
+#define QRKIT_SPARSE_QR_EXTRA_MODULE_H
 
 #include "Eigen/Sparse"
 
@@ -31,7 +31,7 @@
   * solvers for block diagonal, row banded matrices and block angular.
   *
   * \code
-  * #include <Eigen/SparseQRExtra>
+  * #include <QRKit/QRKit>
   * \endcode
   */
 

@@ -8,8 +8,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BLOCKED_THIN_QR_BASE_H
-#define EIGEN_BLOCKED_THIN_QR_BASE_H
+#ifndef QRKIT_BLOCKED_THIN_QR_BASE_H
+#define QRKIT_BLOCKED_THIN_QR_BASE_H
 
 #include <ctime>
 #include <typeinfo>
@@ -18,7 +18,7 @@
 #include "SparseQRUtils.h"
 #include "SparseQROrdering.h"
 
-namespace Eigen {
+namespace QRKit {
 
   template<typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols, bool MultiThreading> class BlockedThinQRBase;
   template<typename BlockedThinQRBaseType> struct BlockedThinQRBaseMatrixQReturnType;
@@ -549,6 +549,6 @@ namespace Eigen {
 
   } // end namespace internal
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif

@@ -8,15 +8,15 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BLOCKED_THIN_DENSE_QR_H
-#define EIGEN_BLOCKED_THIN_DENSE_QR_H
+#ifndef QRKIT_BLOCKED_THIN_DENSE_QR_H
+#define QRKIT_BLOCKED_THIN_DENSE_QR_H
 
 #include <ctime>
 #include <typeinfo>
 #include <shared_mutex>
 #include "BlockedThinQRBase.h"
 
-namespace Eigen {
+namespace QRKit {
 
   template<typename MatrixType, int SuggestedBlockCols, bool MultiThreading> class BlockedThinDenseQR;
 
@@ -170,6 +170,6 @@ namespace Eigen {
   protected:
   };
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif

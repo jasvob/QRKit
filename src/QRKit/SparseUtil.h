@@ -7,18 +7,18 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_SPARSEUTIL_H
-#define EIGEN_SPARSEUTIL_H
+#ifndef QRKIT_SPARSEUTIL_H
+#define QRKIT_SPARSEUTIL_H
 
-namespace Eigen { 
+namespace QRKit { 
 
 #ifdef NDEBUG
-#define EIGEN_DBG_SPARSE(X)
+#define QRKIT_DBG_SPARSE(X)
 #else
-#define EIGEN_DBG_SPARSE(X) X
+#define QRKIT_DBG_SPARSE(X) X
 #endif
 
-#define EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define QRKIT_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename OtherDerived> \
 EIGEN_STRONG_INLINE Derived& operator Op(const Eigen::SparseMatrixBase<OtherDerived>& other) \
 { \
@@ -29,18 +29,18 @@ EIGEN_STRONG_INLINE Derived& operator Op(const Derived& other) \
   return Base::operator Op(other); \
 }
 
-#define EIGEN_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
+#define QRKIT_SPARSE_INHERIT_SCALAR_ASSIGNMENT_OPERATOR(Derived, Op) \
 template<typename Other> \
 EIGEN_STRONG_INLINE Derived& operator Op(const Other& scalar) \
 { \
   return Base::operator Op(scalar); \
 }
 
-#define EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
+#define QRKIT_SPARSE_INHERIT_ASSIGNMENT_OPERATORS(Derived) \
 EIGEN_SPARSE_INHERIT_ASSIGNMENT_OPERATOR(Derived, =)
 
 
-#define EIGEN_SPARSE_PUBLIC_INTERFACE(Derived) \
+#define QRKIT_SPARSE_PUBLIC_INTERFACE(Derived) \
   EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)
 
   
@@ -211,6 +211,6 @@ public:
 };
 
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif // EIGEN_SPARSEUTIL_H
