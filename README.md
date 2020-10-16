@@ -8,9 +8,14 @@ QRKit is an extension of Eigen C++ library that allows for efficient QR decompos
 ### Common sparsity patterns
 <p float="left">
 <img src="imgs/sparsity_patterns.png"  width="384" />
-<img src="imgs/sparsity_patterns2.png"  width="384" />
+<img src="imgs/sparsity_patterns_2.png"  width="384" />
 </p>
 
 ### Experiments
+<p float="left">
+<img src="imgs/benchmark_graph.png"  width="384" />
+<img src="imgs/benchmark_table.png"  width="384" />
+</p>
+
 
 
