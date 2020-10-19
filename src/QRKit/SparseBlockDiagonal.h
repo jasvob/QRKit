@@ -39,8 +39,6 @@ namespace QRKit {
   *
   * The matrix is typically very sparse.
   * This container provides also method for constructing block diagonal matrices from Eigen::SparseMatrix.
-  * If row permutation is needed to obtain block diagonal matrix out of Eigen::SparseMatrix, this permutation
-  * is stored internally and can be obtained using rowPerm() method for further use.
   */
   template <typename BlockMatrixType, typename _StorageIndex = int>
   class SparseBlockDiagonal {
@@ -66,6 +64,10 @@ namespace QRKit {
       : nRows(rows), nCols(cols) {
     }
 
+    /*
+    * This method is expecting that the given input matrix is already in block diagonal format,
+    * having equally-sized diagonal blocks of size (blockRows, blockcols)
+    */
     template <typename MatrixType>
     void fromBlockDiagonalPattern(const MatrixType& mat, const StorageIndex blockRows, const StorageIndex blockCols) {
       this->clear();
@@ -84,13 +86,14 @@ namespace QRKit {
 
         this->insertBack(BlockMatrixType(mat.block(bi.idxRow, bi.idxCol, bi.numRows, bi.numCols)));
       }
-
-      // Permutation is identity
-      m_rowPerm.setIdentity(this->nRows);
     }
 
+    /*
+    * If row permutation is needed to obtain block diagonal matrix out of the input sparse matrix, 
+    * this permutation is returned as reference via an optional parameter for further use.
+    */
     template <typename MatrixType>
-    void fromSparseMatrix(const MatrixType& mat) {
+    void fromSparseMatrix(const MatrixType& mat, PermutationType &rowPerm = PermutationType()) {
       typedef SparseMatrix<Scalar, RowMajor, typename MatrixType::StorageIndex> RowMajorMatrixType;
       
       this->clear();
@@ -106,11 +109,11 @@ namespace QRKit {
       */
       SparseQROrdering::AsBandedAsPossible<IndexType> abapOrdering;
       RowMajorMatrixType rmMat(mat);
-      abapOrdering(rmMat, m_rowPerm);
+      abapOrdering(rmMat, rowPerm);
 
       // Permute if permutation found
       if (abapOrdering.hasPermutation) {
-        rmMat = m_rowPerm * rmMat;
+        rmMat = rowPerm * rmMat;
       }
 
       // Compute matrix block structure
@@ -152,17 +155,11 @@ namespace QRKit {
       return this->nCols;
     }
 
-    const PermutationType& rowPerm() const {
-      return this->m_rowPerm;
-    }
-
   protected:
     BlockVec blocks;
 
     StorageIndex nRows;
     StorageIndex nCols;
-
-    PermutationType m_rowPerm;
   };
 }
 
