@@ -18,7 +18,7 @@
 
 namespace QRKit {
 
-  template<typename MatrixType, int SuggestedBlockCols, bool MultiThreading> class BlockedThinDenseQR;
+  template<typename MatrixType, int SuggestedBlockCols> class BlockedThinDenseQR;
 
   namespace internal {
     // BlockedThinDenseQR_traits
@@ -34,7 +34,11 @@ namespace QRKit {
     /**
     * \ingroup BlockedThinDenseQR_Module
     * \class BlockedThinDenseQR
-    * \brief Sparse Householder QR Factorization for banded matrices
+    * \brief Sparse Householder QR Factorization for banded matrices operating on dense matrix.
+    *
+    * In some cases, it is faster to represent the input matrix as dense matrix and treat its sparsity pattern internally. 
+    * Obviously, such approach requires more memory, it is however computationally much more efficient.
+    *
     * This implementation is not rank revealing and uses Eigen::HouseholderQR for solving the dense blocks.
     *
     * Q is the orthogonal matrix represented as products of Householder reflectors.
@@ -50,13 +54,13 @@ namespace QRKit {
     * \warning The input sparse matrix A must be in compressed mode (see SparseMatrix::makeCompressed()).
     *
     */
-  template<typename _MatrixType, int _SuggestedBlockCols = 2, bool _MultiThreading = false>
+  template<typename _MatrixType, int _SuggestedBlockCols = 2>
   class BlockedThinDenseQR : public BlockedThinQRBase<_MatrixType, Eigen::HouseholderQR<Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>>,
-    Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>, _SuggestedBlockCols, _MultiThreading>
+    Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>, _SuggestedBlockCols>
   {
   protected:
     typedef BlockedThinQRBase<_MatrixType, Eigen::HouseholderQR<Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>>, 
-      Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>, _SuggestedBlockCols, _MultiThreading> Base;
+      Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>, _SuggestedBlockCols> Base;
   
   public:
     typedef _MatrixType MatrixType;

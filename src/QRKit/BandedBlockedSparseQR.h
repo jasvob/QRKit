@@ -14,13 +14,15 @@
 #include <ctime>
 #include <typeinfo>
 #include <shared_mutex>
+#include <Eigen/Householder>
+#include <unsupported/Eigen/SparseExtra>
 #include "SparseBlockYTY.h"
 #include "SparseQRUtils.h"
 #include "SparseQROrdering.h"
 
 namespace QRKit {
 
-  template<typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols, bool MultiThreading> class BandedBlockedSparseQR;
+  template<typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols> class BandedBlockedSparseQR;
   template<typename BandedBlockedSparseQRType> struct BandedBlockedSparseQRMatrixQReturnType;
   template<typename BandedBlockedSparseQRType> struct BandedBlockedSparseQRMatrixQTransposeReturnType;
   template<typename BandedBlockedSparseQRType, typename Derived> struct BandedBlockedSparseQR_QProduct;
@@ -108,16 +110,16 @@ namespace QRKit {
     *
     */
 
-  template<typename _MatrixType, typename _BlockQRSolver, int _BlockOverlap, int _SuggestedBlockCols, bool _MultiThreading>
-  struct SparseQRUtils::HasRowsPermutation<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols, _MultiThreading>> {
+  template<typename _MatrixType, typename _BlockQRSolver, int _BlockOverlap, int _SuggestedBlockCols>
+  struct SparseQRUtils::HasRowsPermutation<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols>> {
     static const bool value = true;
   };
 
-  template<typename _MatrixType, typename _BlockQRSolver, int _BlockOverlap = Dynamic, int _SuggestedBlockCols = 2, bool _MultiThreading = false>
-  class BandedBlockedSparseQR : public SparseSolverBase<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols, _MultiThreading> >
+  template<typename _MatrixType, typename _BlockQRSolver, int _BlockOverlap = Dynamic, int _SuggestedBlockCols = 2>
+  class BandedBlockedSparseQR : public SparseSolverBase<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols> >
   {
   protected:
-    typedef SparseSolverBase<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols, _MultiThreading> > Base;
+    typedef SparseSolverBase<BandedBlockedSparseQR<_MatrixType, _BlockQRSolver, _BlockOverlap, _SuggestedBlockCols> > Base;
     using Base::m_isInitialized;
   public:
     using Base::_solve_impl;
@@ -143,14 +145,14 @@ namespace QRKit {
     };
 
   public:
-    BandedBlockedSparseQR() : m_analysisIsok(false), m_useMultiThreading(_MultiThreading)
+    BandedBlockedSparseQR() : m_analysisIsok(false)
     { }
 
     /** Construct a QR factorization of the matrix \a mat.
     *
     * \sa compute()
     */
-    explicit BandedBlockedSparseQR(const MatrixType& mat) : m_analysisIsok(false), m_useMultiThreading(_MultiThreading)
+    explicit BandedBlockedSparseQR(const MatrixType& mat) : m_analysisIsok(false)
     {
       compute(mat);
     }
@@ -350,7 +352,6 @@ namespace QRKit {
     PermutationType m_outputPerm_c;       // The final column permutation (for compatibility here, set to identity)
     PermutationType m_rowPerm;
     Index m_nonzeropivots;                // Number of non zero pivots found
-    bool m_useMultiThreading;		          // Use multithreaded implementation of Householder product evaluation
 
                                           /*
                                           * Structures filled during sparse matrix pattern analysis.
@@ -382,8 +383,8 @@ namespace QRKit {
   *
   * \note In this step it is assumed that there is no empty row in the matrix \a mat.
   */
-  template <typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols, bool MultiThreading>
-  void BandedBlockedSparseQR<MatrixType, BlockQRSolver, BlockOverlap, SuggestedBlockCols, MultiThreading>::analyzePattern(const MatrixType& mat)
+  template <typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols>
+  void BandedBlockedSparseQR<MatrixType, BlockQRSolver, BlockOverlap, SuggestedBlockCols>::analyzePattern(const MatrixType& mat)
   {
     typedef SparseMatrix<Scalar, RowMajor, MatrixType::StorageIndex> RowMajorMatrixType;
 
@@ -405,14 +406,11 @@ namespace QRKit {
       /* Otherwise, we need to do generic analysis of the input matrix
       */
       // Create column permutation (according to the number of nonzeros in columns
-      //SparseQROrdering::ColumnDensity<StorageIndex> colDenOrdering;
-      //colDenOrdering(mat, this->m_outputPerm_c);
-      //m_pmat = mat * this->m_outputPerm_c;
       this->m_outputPerm_c.resize(mat.cols());
       this->m_outputPerm_c.setIdentity();
 
       // Looking for as-banded-as-possible structure in the matrix
-      SparseQROrdering::AsBandedAsPossible<StorageIndex> abapOrdering;
+      AsBandedAsPossibleOrdering<StorageIndex> abapOrdering;
       RowMajorMatrixType rmMat(mat);
       abapOrdering(rmMat, this->m_rowPerm);
 
@@ -437,8 +435,8 @@ namespace QRKit {
   *
   * \param mat The sparse column-major matrix
   */
-  template <typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols, bool MultiThreading>
-  void BandedBlockedSparseQR<MatrixType, BlockQRSolver, BlockOverlap, SuggestedBlockCols, MultiThreading>::factorize(const MatrixType& mat)
+  template <typename MatrixType, typename BlockQRSolver, int BlockOverlap, int SuggestedBlockCols>
+  void BandedBlockedSparseQR<MatrixType, BlockQRSolver, BlockOverlap, SuggestedBlockCols>::factorize(const MatrixType& mat)
   {
     // Permute the input matrix using the precomputed row permutation
     m_pmat = (this->m_rowPerm * mat);
@@ -452,7 +450,7 @@ namespace QRKit {
     Index numBlocks = this->m_blockInfo.blockOrder.size();
 
     // Prepare the first block
-    BlockBandedMatrixInfo::MatrixBlockInfo bi = this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(0));
+    typename BlockBandedMatrixInfo::MatrixBlockInfo bi = this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(0));
     DenseMatrixType Ji = m_pmat.block(bi.idxRow, bi.idxCol, bi.numRows, bi.numCols);
     Index activeRows = bi.numRows;
     Index numZeros = 0;
@@ -466,49 +464,38 @@ namespace QRKit {
       houseqr.compute(Ji);
 
       // 2) Create matrices T and Y
+      DenseMatrixType Y = DenseMatrixType::Identity(activeRows, bi.numCols);
       DenseMatrixType T = DenseMatrixType::Zero(bi.numCols, bi.numCols);
-      DenseMatrixType Y = DenseMatrixType::Zero(activeRows, bi.numCols);
-      DenseVectorType v = DenseVectorType::Zero(activeRows);
-      DenseVectorType z = DenseVectorType::Zero(activeRows);
-      v(0) = 1.0;
-      v.segment(1, houseqr.householderQ().essentialVector(0).rows()) = houseqr.householderQ().essentialVector(0);
-      Y.col(0) = v;
-      T(0, 0) = -houseqr.hCoeffs()(0);
-      for (MatrixType::StorageIndex bc = 1; bc < bi.numCols; bc++) {
-        v.setZero();
-        v(bc) = 1.0;
-        v.segment(bc + 1, houseqr.householderQ().essentialVector(bc).rows()) = houseqr.householderQ().essentialVector(bc);
-
-        z = -houseqr.hCoeffs()(bc) * (T * (Y.transpose() * v));
-
-        Y.col(bc) = v;
-        T.col(bc) = z;
-        T(bc, bc) = -houseqr.hCoeffs()(bc);
+      for (int bc = 0; bc < bi.numCols; bc++) {
+        Y.col(bc).segment(bc + 1, activeRows - bc - 1) = houseqr.householderQ().essentialVector(bc);
       }
+      Eigen::internal::make_block_householder_triangular_factor<DenseMatrixType, DenseMatrixType, DenseVectorType>(T, Y, houseqr.hCoeffs());
+      T = -T;
+
       // Save current Y and T. The block YTY contains a main diagonal and subdiagonal part separated by (numZeros) zero rows.
       Index diagIdx = bi.idxCol;
-      m_blocksYT.insert(SparseBlockYTYType::Element(diagIdx, diagIdx, BlockYTY<Scalar, StorageIndex>(Y, T, diagIdx, diagIdx, numZeros)));
+      m_blocksYT.insert(typename SparseBlockYTYType::Element(diagIdx, diagIdx, BlockYTY<Scalar, StorageIndex>(Y, T, diagIdx, diagIdx, numZeros)));
 
       // 3) Get the R part of the dense QR decomposition 
       MatrixXd V = houseqr.matrixQR().template triangularView<Upper>();
       // Update sparse R with the rows solved in this step
       int solvedRows = (i == numBlocks - 1) ? bi.numRows : this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(i + 1)).idxCol - bi.idxCol;
-      for (MatrixType::StorageIndex br = 0; br < solvedRows; br++) {
-        for (MatrixType::StorageIndex bc = 0; bc < bi.numCols; bc++) {
+      for (typename MatrixType::StorageIndex br = 0; br < solvedRows; br++) {
+        for (typename MatrixType::StorageIndex bc = 0; bc < bi.numCols; bc++) {
           Rvals.add_if_nonzero(diagIdx + br, bi.idxCol + bc, V(br, bc));
         }
       }
 
       // 4) If this is not the last block, proceed to the next block
       if (i < numBlocks - 1) {
-        BlockBandedMatrixInfo::MatrixBlockInfo biNext = this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(i + 1));
+        typename BlockBandedMatrixInfo::MatrixBlockInfo biNext = this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(i + 1));
         Index blockOverlap = (bi.idxCol + bi.numCols) - biNext.idxCol;
         Index colIncrement = bi.numCols - blockOverlap;
         activeRows = bi.numRows + biNext.numRows - colIncrement;
         numZeros = (biNext.idxRow + biNext.numRows) - activeRows - biNext.idxCol;
         numZeros = (numZeros < 0) ? 0 : numZeros;
 
-        MatrixType::StorageIndex numCols = (biNext.numCols >= blockOverlap) ? biNext.numCols : blockOverlap;
+        typename MatrixType::StorageIndex numCols = (biNext.numCols >= blockOverlap) ? biNext.numCols : blockOverlap;
         Ji = m_pmat.block(bi.idxRow + colIncrement, biNext.idxCol, activeRows, numCols).toDense();
         if (blockOverlap > 0) {
           Ji.block(0, 0, activeRows - biNext.numRows, blockOverlap) = V.block(colIncrement, colIncrement, activeRows - biNext.numRows, blockOverlap);
@@ -528,7 +515,7 @@ namespace QRKit {
   }
 
   /*
-  * General Householder product evaluation performing Q * A or Q.T * A.
+  * General Householder product evaluation performing Q * A or Q^T * A.
   * Householder vectors are represented in compressed blocked form YT.
   * The general version is assuming that A is sparse and that the output will be sparse as well.
   * Offers single-threaded and multi-threaded implementation.
@@ -559,45 +546,32 @@ namespace QRKit {
       Index m = m_qr.rows();
       Index n = m_qr.cols();
 
-      ResValsVector resVals(m_other.cols());
+      Eigen::DynamicSparseMatrix<typename Derived::Scalar, 0, typename Derived::Index> tmp(m_other.rows(), m_other.cols());
       Index numNonZeros = 0;
 
-      SparseQRUtils::parallel_for(0, m_other.cols(), [&](const int bi, const int ei) {
-        // loop over all items
-        for (int j = bi; j < ei; j++)
-        {
-          DenseVectorType resColJd = m_other.col(j).toDense();
+      // loop over all items
+      #pragma omp parallel for
+      for (int j = 0; j < m_other.cols(); j++)
+      {
+        DenseVectorType resColJd = m_other.col(j).toDense();
 
-          if (m_transpose) {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
-          }
-          else {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
-          }
-
-          // Write the result back to j-th column of res
-          SparseVector resColJ = resColJd.sparseView();
-          numNonZeros += resColJ.nonZeros();
-          resVals[j].reserve(resColJ.nonZeros());
-          for (SparseVector::InnerIterator it(resColJ); it; ++it) {
-            resVals[j].push_back(std::make_pair(it.row(), it.value()));
-          }
+        if (m_transpose) {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
         }
-      }, m_qr.m_useMultiThreading ? 0 : 1);
+        else {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
+        }
 
-      // Form the output
-      res = Derived(m_other.rows(), m_other.cols());
-      res.reserve(numNonZeros);
-      for (int j = 0; j < resVals.size(); j++) {
-        res.startVec(j);
-        for (auto it = resVals[j].begin(); it != resVals[j].end(); ++it) {
-          res.insertBack(it->first, j) = it->second;
+        // Write the result back to j-th column of res
+        SparseVector resColJ = resColJd.sparseView();
+        for (SparseVector::InnerIterator it(resColJ); it; ++it) {
+          tmp.coeffRef(it.row(), j) = it.value();
         }
       }
+      res = tmp;
 
       // Don't forget to call finalize
       res.finalize();
-
     }
 
     const BandedBlockedSparseQRType& m_qr;
@@ -633,23 +607,20 @@ namespace QRKit {
       Index n = m_qr.cols();
 
       res = DenseMatrixType::Zero(m_other.rows(), m_other.cols());
-      SparseQRUtils::parallel_for(0, m_other.cols(), [&](const int bi, const int ei) {
-        // loop over all items
-        for (int j = bi; j < ei; j++)
-        {
-          DenseVectorType resColJd = m_other.col(j);
+      #pragma omp parallel for
+      for (int j = 0; j < m_other.cols(); j++)
+      {
+        DenseVectorType resColJd = m_other.col(j);
 
-          if (m_transpose) {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
-          }
-          else {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
-          }
-          // Write the result back to j-th column of res
-          res.col(j) = resColJd;
+        if (m_transpose) {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
         }
-        }, m_qr.m_useMultiThreading ? 0 : 1);
-
+        else {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
+        }
+        // Write the result back to j-th column of res
+        res.col(j) = resColJd;
+      }
     }
 
     const BandedBlockedSparseQRType& m_qr;

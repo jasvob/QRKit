@@ -14,13 +14,14 @@
 #include <ctime>
 #include <typeinfo>
 #include <shared_mutex>
+#include <Eigen/Householder>
 #include "SparseBlockYTY.h"
 #include "SparseQRUtils.h"
 #include "SparseQROrdering.h"
 
 namespace QRKit {
 
-  template<typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols, bool MultiThreading> class BlockedThinQRBase;
+  template<typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols> class BlockedThinQRBase;
   template<typename BlockedThinQRBaseType> struct BlockedThinQRBaseMatrixQReturnType;
   template<typename BlockedThinQRBaseType> struct BlockedThinQRBaseMatrixQTransposeReturnType;
   template<typename BlockedThinQRBaseType, typename Derived> struct BlockedThinQRBase_QProduct;
@@ -78,16 +79,16 @@ namespace QRKit {
     *
     */
 
-  template<typename _MatrixType, typename _BlockQRSolver, typename _MatrixRType, int _SuggestedBlockCols, bool _MultiThreading>
-  struct SparseQRUtils::HasRowsPermutation<BlockedThinQRBase<_MatrixType, _BlockQRSolver, _MatrixRType, _SuggestedBlockCols, _MultiThreading>> {
+  template<typename _MatrixType, typename _BlockQRSolver, typename _MatrixRType, int _SuggestedBlockCols>
+  struct SparseQRUtils::HasRowsPermutation<BlockedThinQRBase<_MatrixType, _BlockQRSolver, _MatrixRType, _SuggestedBlockCols>> {
     static const bool value = true;
   };
 
-  template<typename _MatrixType, typename _DenseBlockQR, typename _MatrixRType, int _SuggestedBlockCols = 2, bool _MultiThreading = false>
-  class BlockedThinQRBase : public SparseSolverBase<BlockedThinQRBase<_MatrixType, _DenseBlockQR, _MatrixRType, _SuggestedBlockCols, _MultiThreading> >
+  template<typename _MatrixType, typename _DenseBlockQR, typename _MatrixRType, int _SuggestedBlockCols = 2>
+  class BlockedThinQRBase : public SparseSolverBase<BlockedThinQRBase<_MatrixType, _DenseBlockQR, _MatrixRType, _SuggestedBlockCols> >
   {
   protected:
-    typedef SparseSolverBase<BlockedThinQRBase<_MatrixType, _DenseBlockQR, _MatrixRType, _SuggestedBlockCols, _MultiThreading> > Base;
+    typedef SparseSolverBase<BlockedThinQRBase<_MatrixType, _DenseBlockQR, _MatrixRType, _SuggestedBlockCols> > Base;
     using Base::m_isInitialized;
   public:
     using Base::_solve_impl;
@@ -117,7 +118,7 @@ namespace QRKit {
     };
 
   public:
-    BlockedThinQRBase() : m_analysisIsok(false), m_useMultiThreading(_MultiThreading)
+    BlockedThinQRBase() : m_analysisIsok(false)
     { }
 
     /** Construct a QR factorization of the matrix \a mat.
@@ -126,7 +127,7 @@ namespace QRKit {
     *
     * \sa compute()
     */
-    explicit BlockedThinQRBase(const MatrixType& mat) : m_analysisIsok(false), m_useMultiThreading(_MultiThreading)
+    explicit BlockedThinQRBase(const MatrixType& mat) : m_analysisIsok(false)
     {
       compute(mat);
     }
@@ -283,7 +284,6 @@ namespace QRKit {
     PermutationType m_rowPerm;
 
     Index m_nonzeroPivots;            // Number of non zero pivots found
-    bool m_useMultiThreading;         // Use multithreaded implementation of Householder product evaluation
 
     bool m_analysisIsok;
     bool m_factorizationIsok;
@@ -299,43 +299,31 @@ namespace QRKit {
     void computeBlockedRepresentation(const DenseBlockQR &slvr, DenseMatrixType &Y, DenseMatrixType &T);
   };
 
-  template <typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols, bool MultiThreading>
-  void BlockedThinQRBase<MatrixType, DenseBlockQR, MatrixRType, SuggestedBlockCols, MultiThreading>::updateMat(const Index &fromIdx, const Index &toIdx, DenseMatrixType &mat, const Index &blockK) {
+  template <typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols>
+  void BlockedThinQRBase<MatrixType, DenseBlockQR, MatrixRType, SuggestedBlockCols>::updateMat(const Index &fromIdx, const Index &toIdx, DenseMatrixType &mat, const Index &blockK) {
     // Now update the unsolved rest of m_pmat
     Index blockRows = this->m_blocksYT[blockK].value.rows();
 
-    SparseQRUtils::parallel_for(fromIdx, toIdx, [&](const int bi, const int ei) {
-      // loop over all items
-      for (int j = bi; j < ei; j++) {
-          mat.middleRows(this->denseBlockInfo.idxRow, blockRows).col(j).noalias()
-            += (this->m_blocksYT[blockK].value.Y() * (this->m_blocksYT[blockK].value.T().transpose() * (this->m_blocksYT[blockK].value.Y().transpose() * mat.middleRows(this->denseBlockInfo.idxRow, blockRows).col(j))));
-      }
-    }, MultiThreading ? 0 : 1);
+    // loop over all items
+    #pragma omp parallel for
+    for (int j = fromIdx; j < toIdx; j++) {
+        mat.middleRows(this->denseBlockInfo.idxRow, blockRows).col(j).noalias()
+          += (this->m_blocksYT[blockK].value.Y() * (this->m_blocksYT[blockK].value.T().transpose() * (this->m_blocksYT[blockK].value.Y().transpose() * mat.middleRows(this->denseBlockInfo.idxRow, blockRows).col(j))));
+    }
   }
 
-  template <typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols, bool MultiThreading>
-  void BlockedThinQRBase<MatrixType, DenseBlockQR, MatrixRType, SuggestedBlockCols, MultiThreading>::computeBlockedRepresentation(const DenseBlockQR &slvr, DenseMatrixType &Y, DenseMatrixType &T) {
+  template <typename MatrixType, typename DenseBlockQR, typename MatrixRType, int SuggestedBlockCols>
+  void BlockedThinQRBase<MatrixType, DenseBlockQR, MatrixRType, SuggestedBlockCols>::computeBlockedRepresentation(const DenseBlockQR &slvr, DenseMatrixType &Y, DenseMatrixType &T) {
     Index numRows = this->denseBlockInfo.numRows;
     Index numCols = this->denseBlockInfo.numCols;
+
     T = DenseMatrixType::Zero(numCols, numCols);
-    Y = DenseMatrixType::Zero(numRows, numCols);
-    DenseVectorType v = DenseVectorType::Zero(numRows);
-    DenseVectorType z = DenseVectorType::Zero(numRows);
-    v(0) = 1.0;
-    v.segment(1, numRows - 1) = slvr.householderQ().essentialVector(0).segment(0, numRows - 1);
-    Y.col(0) = v;
-    T(0, 0) = -slvr.hCoeffs()(0);
-    for (MatrixType::StorageIndex bc = 1; bc < numCols; bc++) {
-      v.setZero();
-      v(bc) = 1.0;
-      v.segment(bc + 1, numRows - bc - 1) = slvr.householderQ().essentialVector(bc).segment(0, numRows - bc - 1);
-
-      z = -slvr.hCoeffs()(bc) * (T * (Y.transpose() * v));
-
-      Y.col(bc) = v;
-      T.col(bc) = z;
-      T(bc, bc) = -slvr.hCoeffs()(bc);
+    Y = DenseMatrixType::Identity(numRows, numCols);
+    for (int bc = 0; bc < numCols; bc++) {
+      Y.col(bc).segment(bc + 1, numRows - bc - 1) = slvr.householderQ().essentialVector(bc);
     }
+    Eigen::internal::make_block_householder_triangular_factor<DenseMatrixType, DenseMatrixType, DenseVectorType>(T, Y, slvr.hCoeffs());
+    T = -T;
   }
 
   /*
@@ -370,41 +358,29 @@ namespace QRKit {
       Index m = m_qr.rows();
       Index n = m_qr.cols();
 
-      ResValsVector resVals(m_other.cols());
+      Eigen::DynamicSparseMatrix<typename Derived::Scalar, 0, typename Derived::Index> tmp(m_other.rows(), m_other.cols());
       Index numNonZeros = 0;
 
-      SparseQRUtils::parallel_for(0, m_other.cols(), [&](const int bi, const int ei) {
-        // loop over all items
-        for (int j = bi; j<ei; j++)
-        {
-          DenseVectorType resColJd = m_other.col(j);
+      #pragma omp parallel for
+      // loop over all items
+      for (int j = 0; j<m_other.cols(); j++)
+      {
+        DenseVectorType resColJd = m_other.col(j);
 
-          if (m_transpose) {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
-          }
-          else {
-            resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
-          }
-
-          // Write the result back to j-th column of res
-          SparseVector resColJ = resColJd.sparseView();
-          numNonZeros += resColJ.nonZeros();
-          resVals[j].reserve(resColJ.nonZeros());
-          for (SparseVector::InnerIterator it(resColJ); it; ++it) {
-            resVals[j].push_back(std::make_pair(it.row(), it.value()));
-          }
+        if (m_transpose) {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY().transpose() * resColJd;
         }
-      }, m_qr.m_useMultiThreading ? 0 : 1);
+        else {
+          resColJd.noalias() = m_qr.m_blocksYT.sequenceYTY() * resColJd;
+        }
 
-      // Form the output
-      res = Derived(m_other.rows(), m_other.cols());
-      res.reserve(numNonZeros);
-      for (int j = 0; j < resVals.size(); j++) {
-        res.startVec(j);
-        for (auto it = resVals[j].begin(); it != resVals[j].end(); ++it) {
-          res.insertBack(it->first, j) = it->second;
+        // Write the result back to j-th column of res
+        SparseVector resColJ = resColJd.sparseView();
+        for (SparseVector::InnerIterator it(resColJ); it; ++it) {
+          tmp.coeffRef(it.row(), j) = it.value();
         }
       }
+      res = tmp;
 
       // Don't forget to call finalize
       res.finalize();
