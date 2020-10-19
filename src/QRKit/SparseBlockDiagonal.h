@@ -15,7 +15,7 @@
 #include "SparseBlockCOO.h"
 #include "SparseQRUtils.h"
 
-namespace Eigen {
+namespace QRKit {
 
   /*
   * Container for memory efficient storing block diagonal matrices.

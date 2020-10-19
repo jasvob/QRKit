@@ -13,7 +13,7 @@
 
 #include <Eigen/Eigen>
 
-namespace Eigen {
+namespace QRKit {
   /*
   * Storage type for general sparse matrix with block structure.
   * Each element holds block position (row index, column index) and the values in the block stored in ValueType.

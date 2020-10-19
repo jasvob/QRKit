@@ -25,10 +25,11 @@
 
 #include <Eigen/Eigen>
 #include <Eigen/SparseCore>
-#include <Eigen/SparseQRExtra>
+#include <QRKit/QRKit>
 #include <Eigen/LevenbergMarquardt>
 
 using namespace Eigen;
+using namespace QRKit;
 
 typedef int IndexType;
 

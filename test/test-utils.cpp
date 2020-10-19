@@ -1,6 +1,3 @@
-// This file is part of Eigen, a lightweight C++ template library
-// for linear algebra.
-//
 // Copyright (C) 2017 Jan Svoboda <jan.svoboda@usi.ch>
 // Copyright (C) 2016 Andrew Fitzgibbon <awf@microsoft.com>
 //
@@ -18,13 +15,15 @@
 #include <future>
 #include <random>
 
-#include "main.h"
+// Include Eigen testing
+#include "test/main.h"
 
 #include <Eigen/Eigen>
 #include <Eigen/SparseCore>
-#include <Eigen/SparseQRExtra>
+#include <QRKit/QRKit>
 
 using namespace Eigen;
+using namespace QRKit;
 
 typedef double Scalar;
 
@@ -41,7 +40,7 @@ void generate_overlapping_block_diagonal_matrix(const Eigen::Index numParams, co
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  Eigen::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
+  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
       jvals.add(i * stride, j, dist(gen));
@@ -79,7 +78,7 @@ void generate_block_diagonal_matrix(const Eigen::Index numParams, const Eigen::I
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  Eigen::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
+  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
       jvals.add(i * stride, j, dist(gen));
@@ -114,7 +113,7 @@ void generate_block_angular_matrix(const Eigen::Index numParams, const Eigen::In
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  Eigen::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams + numResiduals * numAngularParams);
+  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams + numResiduals * numAngularParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
       jvals.add(i * stride, j, dist(gen));

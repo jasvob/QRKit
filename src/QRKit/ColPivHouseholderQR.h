@@ -8,10 +8,10 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
-#define EIGEN_COLPIVOTINGHOUSEHOLDERQR_H
+#ifndef QRKIT_COLPIVOTINGHOUSEHOLDERQR_H
+#define QRKIT_COLPIVOTINGHOUSEHOLDERQR_H
 
-namespace Eigen {
+namespace QRKit {
 
 namespace internal {
 template<typename _MatrixType> struct traits<ColPivHouseholderQR<_MatrixType> >
@@ -416,7 +416,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       return Success;
     }
 
-    #ifndef EIGEN_PARSED_BY_DOXYGEN
+    #ifndef QRKIT_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
     #endif
@@ -580,7 +580,7 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
   m_isInitialized = true;
 }
 
-#ifndef EIGEN_PARSED_BY_DOXYGEN
+#ifndef QRKIT_PARSED_BY_DOXYGEN
 template<typename _MatrixType>
 template<typename RhsType, typename DstType>
 void ColPivHouseholderQR<_MatrixType>::_solve_impl(const RhsType &rhs, DstType &dst) const
@@ -645,6 +645,6 @@ MatrixBase<Derived>::colPivHouseholderQr() const
   return ColPivHouseholderQR<PlainObject>(eval());
 }
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif // EIGEN_COLPIVOTINGHOUSEHOLDERQR_H

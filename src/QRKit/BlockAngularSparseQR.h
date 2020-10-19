@@ -11,14 +11,14 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_BLOCK_ANGULAR_SPARSE_QR_H
+#ifndef QRKIT_BLOCK_ANGULAR_SPARSE_QR_H
 #define EIGEN_BLOCK_ANGULAR_SPARSE_QR_H
 
 #include <algorithm>
 #include <ctime>
 #include "BlockMatrix1x2.h"
 
-namespace Eigen {
+namespace QRKit {
   template <typename LeftSolver, typename RightSolver > class BlockAngularSparseQR;
   template<typename SparseQRType> struct BlockAngularSparseQRMatrixQReturnType;
   template<typename SparseQRType> struct BlockAngularSparseQRMatrixQTransposeReturnType;
@@ -733,6 +733,6 @@ namespace Eigen {
 
   } // end namespace internal
 
-} // end namespace Eigen
+} // end namespace QRKit
 
 #endif

@@ -13,7 +13,7 @@
 
 #include <Eigen/Eigen>
 
-namespace Eigen {
+namespace QRKit {
   namespace SparseQRUtils {
 
     /*********************** Sparse QR solver traits class  ****************************
@@ -256,7 +256,7 @@ namespace Eigen {
         const StorageIndex blockRows, const StorageIndex blockCols) {
 
         // 1) Set the block map based on block paramters passed ot this method	
-        typename StorageIndex numBlocks = matCols / blockCols;
+        StorageIndex numBlocks = matCols / blockCols;
         this->blockMap.clear();
         this->blockOrder.clear();
         this->nonZeroQEstimate = 0;
