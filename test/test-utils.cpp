@@ -1,3 +1,6 @@
+// This file is part of Eigen, a lightweight C++ template library
+// for linear algebra.
+//
 // Copyright (C) 2017 Jan Svoboda <jan.svoboda@usi.ch>
 // Copyright (C) 2016 Andrew Fitzgibbon <awf@microsoft.com>
 //
@@ -15,12 +18,10 @@
 #include <future>
 #include <random>
 
-// Include Eigen testing
-#include "test/main.h"
+#include "main.h"
 
-#include <Eigen/Eigen>
-#include <Eigen/SparseCore>
 #include <QRKit/QRKit>
+#include <Eigen/SparseCore>
 
 using namespace Eigen;
 using namespace QRKit;
@@ -181,7 +182,7 @@ void rowpermADiagLambda(const JacobianType &A, const Scalar lambda, JacobianType
 void test_blockdiag_permuted(const JacobianType &mat) {
   // Looking for as-banded-as-possible structure in the matrix
   PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> permMat;
-  SparseQROrdering::AsBandedAsPossible<JacobianType::StorageIndex> abapOrdering;
+  AsBandedAsPossibleOrdering<JacobianType::StorageIndex> abapOrdering;
   JacobianTypeRowMajor rmMat(mat);
   abapOrdering(rmMat, permMat);
 
@@ -206,7 +207,7 @@ void test_blockdiag_permuted(const JacobianType &mat) {
 void test_overlapping_permuted(const JacobianType &mat) {
   // Looking for as-banded-as-possible structure in the matrix
   PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> permMat;
-  SparseQROrdering::AsBandedAsPossible<JacobianType::StorageIndex> abapOrdering;
+  AsBandedAsPossibleOrdering<JacobianType::StorageIndex> abapOrdering;
   JacobianTypeRowMajor rmMat(mat);
   abapOrdering(rmMat, permMat);
 

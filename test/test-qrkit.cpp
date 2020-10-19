@@ -22,30 +22,37 @@
 //#include "sparse_basic.cpp"
 //#include "sparse_product.cpp"
 
-#include <Eigen/Eigen>
-#include <Eigen/SparseCore>
 #include <QRKit/QRKit>
+#include <Eigen/SparseCore>
 
 using namespace Eigen;
 using namespace QRKit;
 
 typedef double Scalar;
 
+template <typename MatrixType>
+class ColPivHouseholderQRWrapper : public ColPivHouseholderQR<MatrixType> {
+public:
+  // Need to define MatrixQType and MatrixRType for the sparse QR solvers
+  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+  typedef MatrixType MatrixRType;
+};
+
 typedef SparseMatrix<Scalar, ColMajor, int> JacobianType;
 typedef SparseMatrix<Scalar, RowMajor, int> JacobianTypeRowMajor;
 typedef Matrix<Scalar, Dynamic, Dynamic> DenseMatrixType;
 typedef HouseholderQR<Matrix<Scalar, Dynamic, Dynamic>> BandBlockQRSolver;
-typedef BandedBlockedSparseQR<JacobianType, BandBlockQRSolver, 2, 8, false> BandedBlockedQRSolver;
+typedef BandedBlockedSparseQR<JacobianType, BandBlockQRSolver, 2, 8> BandedBlockedQRSolver;
 
 typedef BandedBlockedQRSolver LeftSuperBlockSolver;
-typedef ColPivHouseholderQR<DenseMatrixType> RightSuperBlockSolver;
+typedef ColPivHouseholderQRWrapper<DenseMatrixType> RightSuperBlockSolver;
 typedef BlockAngularSparseQR<LeftSuperBlockSolver, RightSuperBlockSolver> BlockAngularQRSolver;
 typedef Matrix<Scalar, 7, 2> DenseMatrix7x2;
-typedef ColPivHouseholderQR<DenseMatrix7x2 > DenseQRSolver;
+typedef ColPivHouseholderQRWrapper<DenseMatrix7x2 > DenseQRSolver;
 typedef BlockDiagonalSparseQR<DenseQRSolver> BlockDiagonalQRSolver;
 
-typedef BlockedThinDenseQR<DenseMatrixType, 2, false> BlockedThinDenseSolver;
-typedef BlockedThinSparseQR<JacobianType, 2, false> BlockedThinSparseSolver;
+typedef BlockedThinDenseQR<DenseMatrixType, 2> BlockedThinDenseSolver;
+typedef BlockedThinSparseQR<JacobianType, 2> BlockedThinSparseSolver;
 
 typedef BlockAngularSparseQR<LeftSuperBlockSolver, BlockedThinDenseSolver> BlockAngularQRSolverDenseBlocked;
 typedef BlockAngularSparseQR<LeftSuperBlockSolver, BlockedThinSparseSolver> BlockAngularQRSolverDenseBlockedSparse;
@@ -82,7 +89,7 @@ void generate_overlapping_block_diagonal_matrix(const Eigen::Index numParams, co
 
   // Permute Jacobian rows (we want to see how our QR handles a general matrix)	
   if (permuteRows) {
-    PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> perm(spJ.rows());
+    PermutationMatrix<Dynamic, Dynamic, typename JacobianType::StorageIndex> perm(spJ.rows());
     perm.setIdentity();
     std::random_shuffle(perm.indices().data(), perm.indices().data() + perm.indices().size());
     spJ = perm * spJ;
@@ -117,7 +124,7 @@ void generate_block_diagonal_matrix(const Eigen::Index numParams, const Eigen::I
 
   // Permute Jacobian rows (we want to see how our QR handles a general matrix)	
   if (permuteRows) {
-    PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> perm(spJ.rows());
+    PermutationMatrix<Dynamic, Dynamic, typename JacobianType::StorageIndex> perm(spJ.rows());
     perm.setIdentity();
     std::random_shuffle(perm.indices().data(), perm.indices().data() + perm.indices().size());
     spJ = perm * spJ;
