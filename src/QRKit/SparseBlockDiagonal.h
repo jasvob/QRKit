@@ -11,7 +11,7 @@
 #ifndef SPARSE_BLOCK_DIAGONAL_H
 #define SPARSE_BLOCK_DIAGONAL_H
 
-#include <Eigen/Eigen>
+#include <Eigen/Core>
 #include "SparseBlockCOO.h"
 #include "SparseQRUtils.h"
 
@@ -19,6 +19,7 @@ namespace QRKit {
 
   /*
   * Container for memory efficient storing block diagonal matrices.
+  * Each block on the diagonal can have different size.
   * Block angular matrix is a matrix of the following form:
   *
   *  XXX

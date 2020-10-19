@@ -11,7 +11,7 @@
 #ifndef SPARSE_BLOCK_YTY_H
 #define SPARSE_BLOCK_YTY_H
 
-#include <Eigen/Eigen>
+#include <Eigen/Core>
 #include "SparseBlockCOO.h"
 #include "BlockYTY.h"
 

@@ -11,7 +11,6 @@
 #ifndef SPARSE_QR_ORDERING_H
 #define SPARSE_QR_ORDERING_H
 
-#include <Eigen/Eigen>
 #include "SparseQRUtils.h"
 
 namespace QRKit {
@@ -30,7 +29,7 @@ namespace QRKit {
       void operator()(const MatrixType &mat, PermutationType &perm) {
         eigen_assert(!mat.IsRowMajor && "Input matrix has to be ColMajor!");
 
-        typedef SparseQRUtils::VectorCount<MatrixType::StorageIndex> MatrixColCount;
+        typedef SparseQRUtils::VectorCount<typename MatrixType::StorageIndex> MatrixColCount;
         
         std::vector<MatrixColCount> colNnzs;
         // Record number of nonzeros in columns
@@ -40,7 +39,7 @@ namespace QRKit {
         // Sort the column according to the number of nonzeros in an ascending order
         std::stable_sort(colNnzs.begin(), colNnzs.end());
         // Create permutation matrix out of the sorted vector
-        Eigen::Matrix<MatrixType::StorageIndex, Dynamic, 1> colpermIndices(colNnzs.size());
+        Eigen::Matrix<typename MatrixType::StorageIndex, Dynamic, 1> colpermIndices(colNnzs.size());
         for (Index c = 0; c < colNnzs.size(); c++) {
           colpermIndices(colNnzs[c].origIdx) = c;
         }
@@ -65,18 +64,18 @@ namespace QRKit {
       void operator()(const MatrixType &mat, PermutationType &perm) {
         eigen_assert(mat.IsRowMajor && "Input matrix has to be RowMajor!");
 
-        typedef SparseQRUtils::RowRange<MatrixType::StorageIndex> MatrixRowRange;
+        typedef SparseQRUtils::RowRange<typename MatrixType::StorageIndex> MatrixRowRange;
 
         // 1) Compute and store band information for each row in the matrix
         std::vector<MatrixRowRange> rowRanges;
         // Compute band information for each row
-        for (MatrixType::StorageIndex j = 0; j < mat.rows(); j++) {
-          MatrixType::InnerIterator rowIt(mat, j);
+        for (typename MatrixType::StorageIndex j = 0; j < mat.rows(); j++) {
+          typename MatrixType::InnerIterator rowIt(mat, j);
           typename MatrixType::StorageIndex startIdx = mat.cols();
           if (rowIt) {  // Necessary from the nature of the while loop below 
             startIdx = rowIt.index();
           }
-          MatrixType::StorageIndex endIdx = startIdx;
+          typename MatrixType::StorageIndex endIdx = startIdx;
           while (++rowIt) { endIdx = rowIt.index(); }	// FixMe: Is there a better way?
           rowRanges.push_back(MatrixRowRange(j, startIdx, endIdx));
         }
@@ -108,8 +107,8 @@ namespace QRKit {
         }
 
         // And record the estimated block structure
-        Eigen::Matrix<MatrixType::StorageIndex, Dynamic, 1> permIndices(rowRanges.size());
-        MatrixType::StorageIndex rowIdx = 0;
+        Eigen::Matrix<typename MatrixType::StorageIndex, Dynamic, 1> permIndices(rowRanges.size());
+        typename MatrixType::StorageIndex rowIdx = 0;
         for (auto it = rowRanges.begin(); it != rowRanges.end(); ++it, rowIdx++) {
           permIndices(it->origIdx) = rowIdx;
         }

@@ -11,7 +11,7 @@
 #ifndef SPARSE_BLOCK_COO_H
 #define SPARSE_BLOCK_COO_H
 
-#include <Eigen/Eigen>
+#include <vector>
 
 namespace QRKit {
   /*

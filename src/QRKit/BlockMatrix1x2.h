@@ -11,8 +11,6 @@
 #ifndef BLOCK_MATRIX_1X2_H
 #define BLOCK_MATRIX_1X2_H
 
-#include <Eigen/Eigen>
-
 namespace QRKit {
   /*
   * Container for storing 2x1 block matrices.

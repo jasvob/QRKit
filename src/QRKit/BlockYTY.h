@@ -11,8 +11,6 @@
 #ifndef BLOCK_YTY_H
 #define BLOCK_YTY_H
 
-#include <Eigen/Eigen>
-
 /*
 * A dense block of the compressed WY representation (YTY) of the Householder product.
 * Stores matrices Y (m x n) and T (n x n) and number of zeros between main diagonal and subdiagonal parts of the block YTY.

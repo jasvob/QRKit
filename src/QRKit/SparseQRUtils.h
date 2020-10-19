@@ -11,7 +11,7 @@
 #ifndef SPARSE_QR_UTILS_H
 #define SPARSE_QR_UTILS_H
 
-#include <Eigen/Eigen>
+#include <vector>
 
 namespace QRKit {
   namespace SparseQRUtils {
