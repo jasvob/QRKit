@@ -442,7 +442,7 @@ namespace QRKit {
     m_pmat = (this->m_rowPerm * mat);
 
     // Triplet array for the matrix R
-    QRKit::TripletArray<Scalar, typename MatrixType::Index> Rvals(2 * mat.nonZeros());
+    std::vector<Eigen::Triplet<Scalar, typename MatrixType::Index> > Rvals(2 * mat.nonZeros());
 
     // Dense QR solver used for each dense block 
     // jasvob ToDo: Template solver over block size
@@ -481,8 +481,8 @@ namespace QRKit {
       // Update sparse R with the rows solved in this step
       int solvedRows = (i == numBlocks - 1) ? bi.numRows : this->m_blockInfo.blockMap.at(this->m_blockInfo.blockOrder.at(i + 1)).idxCol - bi.idxCol;
       for (typename MatrixType::StorageIndex br = 0; br < solvedRows; br++) {
-        for (typename MatrixType::StorageIndex bc = 0; bc < bi.numCols; bc++) {
-          Rvals.add_if_nonzero(diagIdx + br, bi.idxCol + bc, V(br, bc));
+        for (typename MatrixType::StorageIndex bc = 0; bc < bi.numCols; bc++) {  
+          Rvals.emplace_back(diagIdx + br, bi.idxCol + bc, V(br, bc));
         }
       }
 

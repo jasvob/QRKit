@@ -416,7 +416,7 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
 
   // Q is rows x rows, R is rows x cols
   BlockMatrixType block = mat[0];
-  QRKit::TripletArray<Scalar> tripletsR(numBlocks * block.rows() * block.cols());
+  std::vector<Eigen::Triplet<Scalar> > tripletsR(numBlocks * block.rows() * block.cols());
   m_Q.resize(mat.rows(), mat.rows());
   m_Q.reserve(this->m_blockInfo.nonZeroQEstimate);
 
@@ -469,7 +469,7 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
         // Only the top cxc of R is nonzero, so c rows at a time
         for (Index j = 0; j < block.cols(); j++) {
           for (Index k = j; k < block.cols(); k++) {
-            tripletsR.add(base_col + j, base_col + k, Ri.coeff(j, k));
+            tripletsR.emplace_back(base_col + j, base_col + k, Ri.coeff(j, k));
           }
         }
       } else if(QFormat == MatrixQFormat::BlockDiagonalQ) {
@@ -490,7 +490,7 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
         // Only the top cxc of R is nonzero, so c rows at a time
         for (Index j = 0; j < block.cols(); j++) {
           for (Index k = j; k < block.cols(); k++) {
-            tripletsR.add(base_row + j, base_col + k, Ri.coeff(j, k));
+            tripletsR.emplace_back(base_row + j, base_col + k, Ri.coeff(j, k))
           }
         }
       } else {

@@ -66,18 +66,18 @@ void generate_overlapping_block_diagonal_matrix(const Eigen::Index numParams, co
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
+  std::vector<Eigen::Triplet<Scalar, typename JacobianType::Index> > jvals(stride * numParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
-      jvals.add(i * stride, j, dist(gen));
-      jvals.add(i * stride + 1, j, dist(gen));
-      jvals.add(i * stride + 2, j, dist(gen));
-      jvals.add(i * stride + 3, j, dist(gen));
-      jvals.add(i * stride + 4, j, dist(gen));
-      jvals.add(i * stride + 5, j, dist(gen));
-      jvals.add(i * stride + 6, j, dist(gen));
+      jvals.emplace_back(i * stride, j, dist(gen));
+      jvals.emplace_back(i * stride + 1, j, dist(gen));
+      jvals.emplace_back(i * stride + 2, j, dist(gen));
+      jvals.emplace_back(i * stride + 3, j, dist(gen));
+      jvals.emplace_back(i * stride + 4, j, dist(gen));
+      jvals.emplace_back(i * stride + 5, j, dist(gen));
+      jvals.emplace_back(i * stride + 6, j, dist(gen));
       if (j < numParams - 2) {
-        jvals.add(i * stride + 6, j + 2, dist(gen));
+        jvals.emplace_back(i * stride + 6, j + 2, dist(gen));
       }
     }
   }
@@ -104,16 +104,16 @@ void generate_block_diagonal_matrix(const Eigen::Index numParams, const Eigen::I
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams);
+  std::vector<Eigen::Triplet<Scalar, typename JacobianType::Index> > jvals(stride * numParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
-      jvals.add(i * stride, j, dist(gen));
-      jvals.add(i * stride + 1, j, dist(gen));
-      jvals.add(i * stride + 2, j, dist(gen));
-      jvals.add(i * stride + 3, j, dist(gen));
-      jvals.add(i * stride + 4, j, dist(gen));
-      jvals.add(i * stride + 5, j, dist(gen));
-      jvals.add(i * stride + 6, j, dist(gen));
+      jvals.emplace_back(i * stride, j, dist(gen));
+      jvals.emplace_back(i * stride + 1, j, dist(gen));
+      jvals.emplace_back(i * stride + 2, j, dist(gen));
+      jvals.emplace_back(i * stride + 3, j, dist(gen));
+      jvals.emplace_back(i * stride + 4, j, dist(gen));
+      jvals.emplace_back(i * stride + 5, j, dist(gen));
+      jvals.emplace_back(i * stride + 6, j, dist(gen));
     }
   }
 
@@ -138,24 +138,24 @@ void generate_block_angular_matrix(const Eigen::Index numParams, const Eigen::In
   std::uniform_real_distribution<double> dist(0.5, 5.0);
 
   int stride = 7;
-  QRKit::TripletArray<Scalar, typename JacobianType::Index> jvals(stride * numParams + numResiduals * numAngularParams);
+  std::vector<Eigen::Triplet<Scalar, typename JacobianType::Index> > jvals(stride * numParams + numResiduals * numAngularParams);
   for (int i = 0; i < numParams; i++) {
     for (int j = i * 2; j < (i * 2) + 2 && j < numParams; j++) {
-      jvals.add(i * stride, j, dist(gen));
-      jvals.add(i * stride + 1, j, dist(gen));
-      jvals.add(i * stride + 2, j, dist(gen));
-      jvals.add(i * stride + 3, j, dist(gen));
-      jvals.add(i * stride + 4, j, dist(gen));
-      jvals.add(i * stride + 5, j, dist(gen));
-      jvals.add(i * stride + 6, j, dist(gen));
+      jvals.emplace_back(i * stride, j, dist(gen));
+      jvals.emplace_back(i * stride + 1, j, dist(gen));
+      jvals.emplace_back(i * stride + 2, j, dist(gen));
+      jvals.emplace_back(i * stride + 3, j, dist(gen));
+      jvals.emplace_back(i * stride + 4, j, dist(gen));
+      jvals.emplace_back(i * stride + 5, j, dist(gen));
+      jvals.emplace_back(i * stride + 6, j, dist(gen));
       if (j < numParams - 2) {
-        jvals.add(i * stride + 6, j + 2, dist(gen));
+        jvals.emplace_back(i * stride + 6, j + 2, dist(gen));
       }
     }
   }
   for (int i = 0; i < numResiduals; i++) {
     for (int j = 0; j < numAngularParams; j++) {
-      jvals.add(i, numParams + j, dist(gen));
+      jvals.emplace_back(i, numParams + j, dist(gen));
     }
   }
 
