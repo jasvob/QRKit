@@ -27,7 +27,7 @@ namespace QRKit {
   namespace internal {
 
     // traits<SparseQRMatrixQ[Transpose]>
-    template <typename SparseQRType> struct traits<BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
+    template <typename SparseQRType> struct Eigen::internal::traits<BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
     {
       typedef typename SparseQRType::MatrixType ReturnType;
       typedef typename ReturnType::StorageIndex StorageIndex;
@@ -38,12 +38,12 @@ namespace QRKit {
       };
     };
 
-    template <typename SparseQRType> struct traits<BlockAngularSparseQRMatrixQTransposeReturnType<SparseQRType> >
+    template <typename SparseQRType> struct Eigen::internal::traits<BlockAngularSparseQRMatrixQTransposeReturnType<SparseQRType> >
     {
       typedef typename SparseQRType::MatrixType ReturnType;
     };
 
-    template <typename SparseQRType, typename Derived> struct traits<BlockAngularSparseQR_QProduct<SparseQRType, Derived> >
+    template <typename SparseQRType, typename Derived> struct Eigen::internal::traits<BlockAngularSparseQR_QProduct<SparseQRType, Derived> >
     {
       typedef typename Derived::PlainObject ReturnType;
     };
@@ -698,7 +698,7 @@ namespace QRKit {
   namespace internal {
 
     template<typename SparseQRType>
-    struct evaluator_traits<BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
+    struct Eigen::internal::evaluator_traits<BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
     {
       typedef typename SparseQRType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
@@ -706,7 +706,7 @@ namespace QRKit {
     };
 
     template< typename DstXprType, typename SparseQRType>
-    struct Assignment<DstXprType, BlockAngularSparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar, typename BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Sparse2Sparse>
+    struct Eigen::internal::Assignment<DstXprType, BlockAngularSparseQRMatrixQReturnType<SparseQRType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Eigen::internal::Sparse2Sparse>
     {
       typedef BlockAngularSparseQRMatrixQReturnType<SparseQRType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;
@@ -720,7 +720,7 @@ namespace QRKit {
     };
 
     template< typename DstXprType, typename SparseQRType>
-    struct Assignment<DstXprType, BlockAngularSparseQRMatrixQReturnType<SparseQRType>, internal::assign_op<typename DstXprType::Scalar, typename BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Sparse2Dense>
+    struct Eigen::internal::Assignment<DstXprType, BlockAngularSparseQRMatrixQReturnType<SparseQRType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Eigen::internal::Sparse2Dense>
     {
       typedef BlockAngularSparseQRMatrixQReturnType<SparseQRType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;

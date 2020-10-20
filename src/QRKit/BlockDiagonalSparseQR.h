@@ -389,7 +389,7 @@ struct SparseQRUtils::HasRowsPermutation<BlockDiagonalSparseQR<_BlockQRSolver, _
 * \note In this step it is assumed that there is no empty row in the matrix \a mat.
 */
 template <typename BlockQRSolver, int QFormat>
-void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::analyzePattern(const MatrixType& mat, PermutationType &rowPerm = PermutationType()) {
+void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::analyzePattern(const MatrixType& mat, PermutationType &rowPerm) {
   // Save possible row permutation
   if (rowPerm.rows() == 0) {
     // If there's no row permutation given, set it to identity

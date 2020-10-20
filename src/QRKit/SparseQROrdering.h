@@ -13,6 +13,8 @@
 
 #include "SparseQRUtils.h"
 
+using namespace Eigen;
+
 namespace QRKit {
   namespace SparseQROrdering {
     

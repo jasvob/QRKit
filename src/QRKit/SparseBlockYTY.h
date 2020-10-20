@@ -23,8 +23,8 @@ namespace QRKit {
 
   namespace internal {
 
-    // traits<BlockYTYProduct[Transpose]>
-    template <typename SparseBlockYTYType> struct traits<SparseBlockYTYProductReturnType<SparseBlockYTYType> >
+    // Eigen::internal::traits<BlockYTYProduct[Transpose]>
+    template <typename SparseBlockYTYType> struct Eigen::internal::traits<SparseBlockYTYProductReturnType<SparseBlockYTYType> >
     {
       typedef typename SparseBlockYTYType::MatrixType ReturnType;
       typedef typename ReturnType::StorageIndex StorageIndex;
@@ -35,12 +35,12 @@ namespace QRKit {
       };
     };
 
-    template <typename SparseBlockYTYType> struct traits<SparseBlockYTYProductTransposeReturnType<SparseBlockYTYType> >
+    template <typename SparseBlockYTYType> struct Eigen::internal::traits<SparseBlockYTYProductTransposeReturnType<SparseBlockYTYType> >
     {
       typedef typename SparseBlockYTYType::MatrixType ReturnType;
     };
 
-    template <typename SparseBlockYTYType, typename Derived> struct traits<SparseBlockYTY_VecProduct<SparseBlockYTYType, Derived> >
+    template <typename SparseBlockYTYType, typename Derived> struct Eigen::internal::traits<SparseBlockYTY_VecProduct<SparseBlockYTYType, Derived> >
     {
       typedef typename Derived::PlainObject ReturnType;
     };
@@ -188,7 +188,7 @@ namespace QRKit {
 
   namespace internal {
     template<typename SparseBlockYTYType>
-    struct evaluator_traits<SparseBlockYTYProductReturnType<SparseBlockYTYType> >
+    struct Eigen::internal::evaluator_traits<SparseBlockYTYProductReturnType<SparseBlockYTYType> >
     {
       typedef typename SparseBlockYTYType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;

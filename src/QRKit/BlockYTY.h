@@ -25,7 +25,7 @@ namespace QRKit {
   namespace internal {
 
     // traits<BlockYTYProduct[Transpose]>
-    template <typename BlockYTYType> struct traits<BlockYTYProductReturnType<BlockYTYType> >
+    template <typename BlockYTYType> struct Eigen::internal::traits<BlockYTYProductReturnType<BlockYTYType> >
     {
       typedef typename BlockYTYType::MatrixType ReturnType;
       typedef typename ReturnType::StorageIndex StorageIndex;
@@ -36,12 +36,12 @@ namespace QRKit {
       };
     };
 
-    template <typename BlockYTYType> struct traits<BlockYTYProductTransposeReturnType<BlockYTYType> >
+    template <typename BlockYTYType> struct Eigen::internal::traits<BlockYTYProductTransposeReturnType<BlockYTYType> >
     {
       typedef typename BlockYTYType::MatrixType ReturnType;
     };
 
-    template <typename BlockYTYType, typename Derived> struct traits<BlockYTY_VecProduct<BlockYTYType, Derived> >
+    template <typename BlockYTYType, typename Derived> struct Eigen::internal::traits<BlockYTY_VecProduct<BlockYTYType, Derived> >
     {
       typedef typename Derived::PlainObject ReturnType;
     };
@@ -224,7 +224,7 @@ namespace QRKit {
 
   namespace internal {
     template<typename BlockYTYType>
-    struct evaluator_traits<BlockYTYProductReturnType<BlockYTYType> >
+    struct Eigen::internal::evaluator_traits<BlockYTYProductReturnType<BlockYTYType> >
     {
       typedef typename BlockYTYType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
