@@ -495,7 +495,7 @@ void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::factorize(const MatrixType& 
         // Only the top cxc of R is nonzero, so c rows at a time
         for (Index j = 0; j < block.cols(); j++) {
           for (Index k = j; k < block.cols(); k++) {
-            tripletsR.emplace_back(base_row + j, base_col + k, Ri.coeff(j, k))
+              tripletsR.emplace_back(base_row + j, base_col + k, Ri.coeff(j, k));
           }
         }
       } else {

@@ -17,20 +17,23 @@
 #include "BlockedThinQRBase.h"
 
 namespace QRKit {
+    template<typename MatrixType, int SuggestedBlockCols> class BlockedThinDenseQR;
+}
 
-  template<typename MatrixType, int SuggestedBlockCols> class BlockedThinDenseQR;
+namespace Eigen {
+    namespace internal {
+        // BlockedThinDenseQR_traits
+        template <typename T> struct BlockedThinDenseQR_traits {  };
+        template <class T, int Rows, int Cols, int Options> struct BlockedThinDenseQR_traits<Matrix<T, Rows, Cols, Options>> {
+            typedef Matrix<T, Rows, 1, Options> Vector;
+        };
+        template <class Scalar, int Options, typename Index> struct BlockedThinDenseQR_traits<SparseMatrix<Scalar, Options, Index>> {
+            typedef SparseVector<Scalar, Options> Vector;
+        };
+    } // End namespace internal
+} // End namespace Eigen
 
-  namespace internal {
-    // BlockedThinDenseQR_traits
-    template <typename T> struct BlockedThinDenseQR_traits {  };
-    template <class T, int Rows, int Cols, int Options> struct BlockedThinDenseQR_traits<Matrix<T, Rows, Cols, Options>> {
-      typedef Matrix<T, Rows, 1, Options> Vector;
-    };
-    template <class Scalar, int Options, typename Index> struct BlockedThinDenseQR_traits<SparseMatrix<Scalar, Options, Index>> {
-      typedef SparseVector<Scalar, Options> Vector;
-    };
-  } // End namespace internal
-
+namespace QRKit {
     /**
     * \ingroup BlockedThinDenseQR_Module
     * \class BlockedThinDenseQR
@@ -54,6 +57,7 @@ namespace QRKit {
     * \warning The input sparse matrix A must be in compressed mode (see SparseMatrix::makeCompressed()).
     *
     */
+
   template<typename _MatrixType, int _SuggestedBlockCols = 2>
   class BlockedThinDenseQR : public BlockedThinQRBase<_MatrixType, Eigen::HouseholderQR<Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>>,
     Eigen::Matrix<typename _MatrixType::Scalar, Dynamic, Dynamic>, _SuggestedBlockCols>

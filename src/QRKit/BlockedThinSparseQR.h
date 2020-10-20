@@ -18,19 +18,23 @@
 
 namespace QRKit {
 
-  template<typename MatrixType, int SuggestedBlockCols> class BlockedThinSparseQR;
+    template<typename MatrixType, int SuggestedBlockCols> class BlockedThinSparseQR;
+}
 
-  namespace internal {
-    // BlockedThinSparseQR_traits
-    template <typename T> struct BlockedThinSparseQR_traits {  };
-    template <class T, int Rows, int Cols, int Options> struct BlockedThinSparseQR_traits<Matrix<T, Rows, Cols, Options>> {
-      typedef Matrix<T, Rows, 1, Options> Vector;
-    };
-    template <class Scalar, int Options, typename Index> struct BlockedThinSparseQR_traits<SparseMatrix<Scalar, Options, Index>> {
-      typedef SparseVector<Scalar, Options> Vector;
-    };
-  } // End namespace internal
+namespace Eigen {
+    namespace internal {
+        // BlockedThinSparseQR_traits
+        template <typename T> struct BlockedThinSparseQR_traits {  };
+        template <class T, int Rows, int Cols, int Options> struct BlockedThinSparseQR_traits<Matrix<T, Rows, Cols, Options>> {
+            typedef Matrix<T, Rows, 1, Options> Vector;
+        };
+        template <class Scalar, int Options, typename Index> struct BlockedThinSparseQR_traits<SparseMatrix<Scalar, Options, Index>> {
+            typedef SparseVector<Scalar, Options> Vector;
+        };
+    } // End namespace internal
+} // End namespace Eigen
 
+namespace QRKit {
     /**
     * \ingroup BlockedThinSparseQR_Module
     * \class BlockedThinSparseQR
@@ -165,7 +169,7 @@ namespace QRKit {
       /******************************************************************/
       // Create column permutation (according to the number of nonzeros in columns)
       if (colPerm) {
-        ColumnDensityOrdering<StorageIndex> colDenOrdering;
+        SparseQROrdering::ColumnDensity<StorageIndex> colDenOrdering;
         colDenOrdering(mat, this->m_outputPerm_c);
 
         m_pmat = mat * this->m_outputPerm_c;
@@ -181,7 +185,7 @@ namespace QRKit {
       // Compute and store band information for each row in the matrix
       if (rowPerm) {
         RowMajorMatrixType rmMat(m_pmat);
-        AsBandedAsPossibleOrdering<StorageIndex> abapOrdering;
+        SparseQROrdering::AsBandedAsPossible<StorageIndex> abapOrdering;
         abapOrdering(rmMat, this->m_rowPerm);
 
         m_pmat = this->m_rowPerm * m_pmat;
