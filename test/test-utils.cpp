@@ -1,8 +1,8 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2017 Jan Svoboda <jan.svoboda@usi.ch>
-// Copyright (C) 2016 Andrew Fitzgibbon <awf@microsoft.com>
+// Copyright (C) 2020 Jan Svoboda <jan.svoboda@nnaisense.com>
+// Copyright (C) 2020 Andrew Fitzgibbon <awf@microsoft.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -18,11 +18,10 @@
 #include <future>
 #include <random>
 
+#include "test.h"
+
 #include <QRKit/QRKit>
 #include <Eigen/SparseCore>
-
-#define VERIFY_IS_APPROX(x, y) (std::abs(x - y) < 1e-12)
-#define VERIFY_IS_EQUAL(x, y) (x == y)
 
 using namespace Eigen;
 using namespace QRKit;
@@ -180,7 +179,9 @@ void rowpermADiagLambda(const JacobianType &A, const Scalar lambda, JacobianType
   outA = rowPerm * Arm;
 }
 
-void test_blockdiag_permuted(const JacobianType &mat) {
+bool test_blockdiag_permuted(const JacobianType &mat) {
+  bool test_res = true;
+  
   // Looking for as-banded-as-possible structure in the matrix
   PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> permMat;
   SparseQROrdering::AsBandedAsPossible<JacobianType::StorageIndex> abapOrdering;
@@ -195,17 +196,21 @@ void test_blockdiag_permuted(const JacobianType &mat) {
   SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex> bInfo;
   bInfo(rmMat);
 
-  VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 256);  // Expecting 256 blocks
+  test_res &= VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 256);  // Expecting 256 blocks
   for (int i = 0; i < bInfo.blockOrder.size(); i++) {
     SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex>::MatrixBlockInfo bi = bInfo.blockMap[bInfo.blockOrder[i]];
-    VERIFY_IS_EQUAL(bi.idxRow, i * 7);
-    VERIFY_IS_EQUAL(bi.idxCol, i * 2);
-    VERIFY_IS_EQUAL(bi.numRows, 7);
-    VERIFY_IS_EQUAL(bi.numCols, 2);
+    test_res &= VERIFY_IS_EQUAL(bi.idxRow, i * 7);
+    test_res &= VERIFY_IS_EQUAL(bi.idxCol, i * 2);
+    test_res &= VERIFY_IS_EQUAL(bi.numRows, 7);
+    test_res &= VERIFY_IS_EQUAL(bi.numCols, 2);
   }
+
+  return test_res;
 }
 
-void test_overlapping_permuted(const JacobianType &mat) {
+bool test_overlapping_permuted(const JacobianType &mat) {
+  bool test_res = true;
+
   // Looking for as-banded-as-possible structure in the matrix
   PermutationMatrix<Dynamic, Dynamic, JacobianType::StorageIndex> permMat;
   SparseQROrdering::AsBandedAsPossible<JacobianType::StorageIndex> abapOrdering;
@@ -220,19 +225,19 @@ void test_overlapping_permuted(const JacobianType &mat) {
   SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex> bInfo;
   bInfo(rmMat);
 
-  VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 255);  // Expecting 256 blocks
+  test_res &= VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 255);  // Expecting 256 blocks
   for (int i = 0; i < bInfo.blockOrder.size(); i++) {
     SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex>::MatrixBlockInfo bi = bInfo.blockMap[bInfo.blockOrder[i]];
     if (i < bInfo.blockOrder.size() - 1) {  // Expecting block 7x4
-      VERIFY_IS_EQUAL(bi.idxRow, i * 7);
-      VERIFY_IS_EQUAL(bi.idxCol, i * 2);
-      VERIFY_IS_EQUAL(bi.numRows, 7);
-      VERIFY_IS_EQUAL(bi.numCols, 4);
+      test_res &= VERIFY_IS_EQUAL(bi.idxRow, i * 7);
+      test_res &= VERIFY_IS_EQUAL(bi.idxCol, i * 2);
+      test_res &= VERIFY_IS_EQUAL(bi.numRows, 7);
+      test_res &= VERIFY_IS_EQUAL(bi.numCols, 4);
     } else {  // Expecting last block 14x4
-      VERIFY_IS_EQUAL(bi.idxRow, i * 7);
-      VERIFY_IS_EQUAL(bi.idxCol, i * 2);
-      VERIFY_IS_EQUAL(bi.numRows, 14);
-      VERIFY_IS_EQUAL(bi.numCols, 4);
+      test_res &= VERIFY_IS_EQUAL(bi.idxRow, i * 7);
+      test_res &= VERIFY_IS_EQUAL(bi.idxCol, i * 2);
+      test_res &= VERIFY_IS_EQUAL(bi.numRows, 14);
+      test_res &= VERIFY_IS_EQUAL(bi.numCols, 4);
     }
   }
 
@@ -242,9 +247,13 @@ void test_overlapping_permuted(const JacobianType &mat) {
   //for (it; it != bInfo.blockOrder.end(); ++it) {
   //  std::cout << "[" << bInfo.blockMap[*it].idxRow << ", " << bInfo.blockMap[*it].idxCol << "] = " << bInfo.blockMap[*it].numRows << " x " << bInfo.blockMap[*it].numCols << std::endl;
   //}
+
+  return test_res;
 }
 
-void test_blockdiag_vertperm_diag(const JacobianType &mat) {
+bool test_blockdiag_vertperm_diag(const JacobianType &mat) {
+  bool test_res = true;
+
   JacobianType matDiag;
   rowpermADiagLambda(mat, 1e-3, matDiag);
 
@@ -252,18 +261,22 @@ void test_blockdiag_vertperm_diag(const JacobianType &mat) {
   SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex> bInfo;
   bInfo(rmMat);
 
-  VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 256);  // Expecting 256 blocks
+  test_res &= VERIFY_IS_EQUAL(bInfo.blockOrder.size(), 256);  // Expecting 256 blocks
   for (int i = 0; i < bInfo.blockOrder.size(); i++) {
     SparseQRUtils::BlockBandedMatrixInfo<JacobianType::StorageIndex>::MatrixBlockInfo bi = bInfo.blockMap[bInfo.blockOrder[i]];
-    VERIFY_IS_EQUAL(bi.idxRow, i * 9);
-    VERIFY_IS_EQUAL(bi.idxCol, i * 2);
-    VERIFY_IS_EQUAL(bi.numRows, 9);
-    VERIFY_IS_EQUAL(bi.numCols, 2);
+    test_res &= VERIFY_IS_EQUAL(bi.idxRow, i * 9);
+    test_res &= VERIFY_IS_EQUAL(bi.idxCol, i * 2);
+    test_res &= VERIFY_IS_EQUAL(bi.numRows, 9);
+    test_res &= VERIFY_IS_EQUAL(bi.numCols, 2);
   }
+
+  return test_res;
 }
 
-void test_parallel_for(const JacobianType &mat) {
+bool test_parallel_for(const JacobianType &mat) {
   typedef std::vector<std::vector<std::pair<typename JacobianType::Index, Scalar>>> ResValsVector;
+
+  bool test_res = true;
 
   for(int i = 2; i < 5; i++) {
     /********************************************************************************/
@@ -335,41 +348,39 @@ void test_parallel_for(const JacobianType &mat) {
 
     /********************************************************************************/
     // Check that result of sequential equals result of parallel
-    VERIFY_IS_APPROX((res - res2).cwiseAbs().sum(), 0.0);
+    test_res &= VERIFY_IS_APPROX((res - res2).cwiseAbs().sum(), 0.0);
   }
-}
 
-void test_sparse_qr_extra_utils() {
-  /*
-  * Set-up the problem to be solved
-  */
-  // Problem size
-  Eigen::Index numVars = 256;
-  Eigen::Index numParams = numVars * 2;
-  Eigen::Index numResiduals = numVars * 3 + numVars + numVars * 3;
-
-  /*
-  // Generate the 7x2 block diagonal pattern, permute and try to find the ordering back
-  JacobianType spJ;
-  generate_block_diagonal_matrix(numParams, numResiduals, spJ, true);
-  CALL_SUBTEST_1(test_blockdiag_permuted(spJ));
-  
-  // Generate the 7x4 overlapping pattern, permute and try to find the ordering back
-  generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
-  CALL_SUBTEST_2(test_overlapping_permuted(spJ));
-
-  // Generate the 7x2 block diagonal pattern, and vertically concatenate it with a diagonal matrix
-  // and rowpermute to form blocks 9x2
-  generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
-  CALL_SUBTEST_3(test_blockdiag_vertperm_diag(spJ));
-
-  // Generate a random sparse matrix - for example block banded matrix (doesn't really matter)
-  // and process it using parallel for
-  generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
-  CALL_SUBTEST_4(test_parallel_for(spJ));
-  */
+  return test_res;
 }
 
 int main(int argc, char *argv[]) {
+    /*
+    * Set-up the problem to be solved
+    */
+    // Problem size
+    Eigen::Index numVars = 256;
+    Eigen::Index numParams = numVars * 2;
+    Eigen::Index numResiduals = numVars * 3 + numVars + numVars * 3;
+
+    // Generate the 7x2 block diagonal pattern, permute and try to find the ordering back
+    JacobianType spJ;
+    generate_block_diagonal_matrix(numParams, numResiduals, spJ, true);
+    RUN_TEST(test_blockdiag_permuted(spJ), 0);
+
+    // Generate the 7x4 overlapping pattern, permute and try to find the ordering back
+    generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
+    RUN_TEST(test_overlapping_permuted(spJ), 1);
+
+    // Generate the 7x2 block diagonal pattern, and vertically concatenate it with a diagonal matrix
+    // and rowpermute to form blocks 9x2
+    generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
+    RUN_TEST(test_blockdiag_vertperm_diag(spJ), 2);
+
+    // Generate a random sparse matrix - for example block banded matrix (doesn't really matter)
+    // and process it using parallel for
+    generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
+    RUN_TEST(test_parallel_for(spJ), 3);
+
     return 0;
 }

@@ -1,8 +1,8 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2017 Jan Svoboda <jan.svoboda@usi.ch>
-// Copyright (C) 2016 Andrew Fitzgibbon <awf@microsoft.com>
+// Copyright (C) 2020 Jan Svoboda <jan.svoboda@nnaisense.com>
+// Copyright (C) 2020 Andrew Fitzgibbon <awf@microsoft.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -18,12 +18,11 @@
 #include <future>
 #include <random>
 
-#include "main.h"
-//#include "sparse_basic.cpp"
-//#include "sparse_product.cpp"
+#include "test.h"
 
 #include <QRKit/QRKit>
 #include <Eigen/SparseCore>
+#include <Eigen/QR>
 
 using namespace Eigen;
 using namespace QRKit;
@@ -165,7 +164,9 @@ void generate_block_angular_matrix(const Eigen::Index numParams, const Eigen::In
   spJ.makeCompressed();
 }
 
-void test_block_diagonal(const JacobianType &spJ,  const int nVecEvals = 10) {
+bool test_block_diagonal(const JacobianType &spJ,  const int nVecEvals = 10) {
+  bool test_res = true;
+    
   /*
   * Solve the problem using the block diagonal QR solver.
   */
@@ -197,12 +198,15 @@ void test_block_diagonal(const JacobianType &spJ,  const int nVecEvals = 10) {
   JacobianType spJPerm = (spJ * bdqr.colsPermutation());
 
   // 5) Test results
-  VERIFY_IS_APPROX(bdqr.matrixQ() * bdqr.matrixR(), spJPerm);
-  VERIFY_IS_APPROX(bdqr.matrixQ().transpose() * spJPerm, bdqr.matrixR());
-  VERIFY_IS_APPROX(bdqrXDense, bdqrSolvedBackperm);
+  test_res &= VERIFY_IS_APPROX(bdqr.matrixQ() * bdqr.matrixR(), spJPerm);
+  test_res &= VERIFY_IS_APPROX(bdqr.matrixQ().transpose() * spJPerm, bdqr.matrixR());
+  test_res &= VERIFY_IS_APPROX(bdqrXDense, bdqrSolvedBackperm);
+
+  return test_res;
 }
 
-void test_banded_blocked(const JacobianType &spJ, const int nVecEvals = 10) {
+bool test_banded_blocked(const JacobianType &spJ, const int nVecEvals = 10) {
+  bool test_res = true;
 
   // Auxiliary identity matrix (for later use)
   JacobianType I(spJ.rows(), spJ.rows());
@@ -244,14 +248,18 @@ void test_banded_blocked(const JacobianType &spJ, const int nVecEvals = 10) {
   JacobianType spJRowPerm = (slvr.rowsPermutation() * spJ);
 
   // 5) Test results
-  VERIFY_IS_APPROX(slvrQ * slvr.matrixR(), spJRowPerm);
-  VERIFY_IS_APPROX(slvrQ.transpose() * spJRowPerm, slvr.matrixR());
-  VERIFY_IS_APPROX(slvrQt.transpose() * slvr.matrixR(), spJRowPerm);
-  VERIFY_IS_APPROX(slvrQt * spJRowPerm, slvr.matrixR());
-  VERIFY_IS_APPROX(slvrXDense, solvedBackperm);
+  test_res &= VERIFY_IS_APPROX(slvrQ * slvr.matrixR(), spJRowPerm);
+  test_res &= VERIFY_IS_APPROX(slvrQ.transpose() * spJRowPerm, slvr.matrixR());
+  test_res &= VERIFY_IS_APPROX(slvrQt.transpose() * slvr.matrixR(), spJRowPerm);
+  test_res &= VERIFY_IS_APPROX(slvrQt * spJRowPerm, slvr.matrixR());
+  test_res &= VERIFY_IS_APPROX(slvrXDense, solvedBackperm);
+
+  return test_res;
 }
 
-void test_block_angular(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+bool test_block_angular(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+  bool test_res = true;
+  
   // 6) Solve sparse block angular matrix
   // Factorize
   BlockAngularQRSolver baqr;
@@ -278,10 +286,14 @@ void test_block_angular(const JacobianType &spJ, const int numAngularParams, con
     baqrSolvedBackperm(baqr.colsPermutation().indices().coeff(i)) = baqrSolved(i);
   }
 
-  VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+  test_res &= VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+
+  return test_res;
 }
 
-void test_block_angular_denseblocked(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+bool test_block_angular_denseblocked(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+  bool test_res = true;
+
   // 6) Solve sparse block angular matrix
   // Factorize
   BlockAngularQRSolverDenseBlocked baqr;
@@ -309,10 +321,14 @@ void test_block_angular_denseblocked(const JacobianType &spJ, const int numAngul
     baqrSolvedBackperm(baqr.colsPermutation().indices().coeff(i)) = baqrSolved(i);
   }
 
-  VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+  test_res &= VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+
+  return test_res;
 }
 
-void test_block_angular_denseblocked_sparse(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+bool test_block_angular_denseblocked_sparse(const JacobianType &spJ, const int numAngularParams, const int nVecEvals = 10) {
+  bool test_res = true;
+   
   // 6) Solve sparse block angular matrix
   // Factorize
   BlockAngularQRSolverDenseBlockedSparse baqr;
@@ -340,48 +356,51 @@ void test_block_angular_denseblocked_sparse(const JacobianType &spJ, const int n
     baqrSolvedBackperm(baqr.colsPermutation().indices().coeff(i)) = baqrSolved(i);
   }
 
-  VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+  test_res &= VERIFY_IS_APPROX(baqrXDense, baqrSolvedBackperm);
+
+  return test_res;
 }
 
-void test_sparse_qr_extra() {
-  /*
-  * Set-up the problem to be solved
-  */
-  // Problem size
-  Eigen::Index numVars = 256;
-  Eigen::Index numParams = numVars * 2;
-  Eigen::Index numResiduals = numVars * 3 + numVars + numVars * 3;
-  int nVecEvals = 10;
+int main(int argc, char* argv[]) {
+    /*
+    * Set-up the problem to be solved
+    */
+    // Problem size
+    Eigen::Index numVars = 256;
+    Eigen::Index numParams = numVars * 2;
+    Eigen::Index numResiduals = numVars * 3 + numVars + numVars * 3;
+    int nVecEvals = 10;
+    
+    // Generate the sparse matrix
+    JacobianType spJ;
+    generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
+    RUN_TEST(test_block_diagonal(spJ), 0);
 
-  // Generate the sparse matrix
-  JacobianType spJ;
-  generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
-  CALL_SUBTEST_1(test_block_diagonal(spJ));
+    // Generate the sparse matrix
+    generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
+    RUN_TEST(test_banded_blocked(spJ), 1);
+    generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, false);
+    RUN_TEST(test_banded_blocked(spJ), 2);
+    generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
+    RUN_TEST(test_banded_blocked(spJ), 3);
 
+    // Generate new input
+    numVars = 1024;
+    numParams = numVars * 2;
+    numResiduals = numVars * 3 + numVars + numVars * 3;
+    Eigen::Index numAngularParams = 384; // 128 control points
 
-  // Generate the sparse matrix
-  generate_block_diagonal_matrix(numParams, numResiduals, spJ, false);
-  CALL_SUBTEST_2(test_banded_blocked(spJ));
-  generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, false);
-  CALL_SUBTEST_3(test_banded_blocked(spJ));
-  generate_overlapping_block_diagonal_matrix(numParams, numResiduals, spJ, true);
-  CALL_SUBTEST_4(test_banded_blocked(spJ));
-  
-  // Generate new input 
-  numVars = 1024;
-  numParams = numVars * 2;
-  numResiduals = numVars * 3 + numVars + numVars * 3;
-  Eigen::Index numAngularParams = 384; // 128 control points
+    // Generate the sparse matrix
+    generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
+    RUN_TEST(test_block_angular(spJ, numAngularParams), 4);
 
-  // Generate the sparse matrix
-  generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
-  CALL_SUBTEST_5(test_block_angular(spJ, numAngularParams));
+    // Generate the sparse matrix
+    generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
+    RUN_TEST(test_block_angular_denseblocked(spJ, numAngularParams), 5);
 
-  // Generate the sparse matrix
-  generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
-  CALL_SUBTEST_6(test_block_angular_denseblocked(spJ, numAngularParams));
+    // Generate the sparse matrix
+    generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
+    RUN_TEST(test_block_angular_denseblocked_sparse(spJ, numAngularParams), 6);
 
-  // Generate the sparse matrix
-  generate_block_angular_matrix(numParams, numAngularParams, numResiduals, spJ);
-  CALL_SUBTEST_7(test_block_angular_denseblocked_sparse(spJ, numAngularParams));
+    return 0;
 }
