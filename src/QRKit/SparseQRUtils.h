@@ -176,18 +176,18 @@ namespace QRKit {
     * If valid block (nrows >= ncols) cannot be constructed with SuggestedBlockCols column, it is beign extended
     * by the smallest number of columns that assure (nrows >= ncols).
     */
-    template <typename StorageIndex, int SuggestedBlockCols = 2>
+    template <typename IndexType, int SuggestedBlockCols = 2>
     struct BlockBandedMatrixInfo {
-      typedef SparseQRUtils::BlockInfo<StorageIndex> MatrixBlockInfo;
+      typedef SparseQRUtils::BlockInfo<IndexType> MatrixBlockInfo;
       typename MatrixBlockInfo::Map blockMap;		// Sparse matrix block information
       typename MatrixBlockInfo::MapOrder blockOrder; // Sparse matrix block order
-      StorageIndex nonZeroQEstimate;		// Estimate of number of nonzero elements in Q matrix formed by QR decomposition of the analyzed matrix
+      IndexType nonZeroQEstimate;		// Estimate of number of nonzero elements in Q matrix formed by QR decomposition of the analyzed matrix
 
       template <typename MatrixType>
       void operator()(const MatrixType &mat) {
         eigen_assert(mat.IsRowMajor && "Input matrix has to be RowMajor!");
 
-        typedef SparseQRUtils::RowRange<MatrixType::StorageIndex> MatrixRowRange;
+        typedef SparseQRUtils::RowRange<typename MatrixType::StorageIndex> MatrixRowRange;
         typedef std::map<typename MatrixType::StorageIndex, typename MatrixType::StorageIndex> BlockBandSize;
         // 1) Compute and store band information for each start index that has nonzero in column i
         BlockBandSize bandWidths, bandHeights;
@@ -249,19 +249,19 @@ namespace QRKit {
 
         // 3) Go through the estimated block structure
         // And merge several blocks together if needed/possible in order to form reasonably big banded blocks
-        this->mergeBlocks<StorageIndex>(this->blockOrder, this->blockMap, maxColStep);
+        this->mergeBlocks<IndexType>(this->blockOrder, this->blockMap, maxColStep);
       }
 
-      void fromBlockDiagonalPattern(const StorageIndex matRows, const StorageIndex matCols,
-        const StorageIndex blockRows, const StorageIndex blockCols) {
+      void fromBlockDiagonalPattern(const IndexType matRows, const IndexType matCols,
+        const IndexType blockRows, const IndexType blockCols) {
 
         // 1) Set the block map based on block paramters passed ot this method	
-        StorageIndex numBlocks = matCols / blockCols;
+        IndexType numBlocks = matCols / blockCols;
         this->blockMap.clear();
         this->blockOrder.clear();
         this->nonZeroQEstimate = 0;
-        typename StorageIndex rowIdx = 0;
-        typename StorageIndex colIdx = 0;
+        IndexType rowIdx = 0;
+        IndexType colIdx = 0;
         for (int i = 0; i < numBlocks; i++) {
           rowIdx = i * blockRows;
           colIdx = i * blockCols;
@@ -271,17 +271,17 @@ namespace QRKit {
         }
       }
 
-      void fromBlockBandedPattern(const StorageIndex matRows, const StorageIndex matCols,
-        const StorageIndex blockRows, const StorageIndex blockCols, const StorageIndex blockOverlap) {
+      void fromBlockBandedPattern(const IndexType matRows, const IndexType matCols,
+        const IndexType blockRows, const IndexType blockCols, const IndexType blockOverlap) {
 
         // 1) Set the block map based on block paramters passed ot this method	
-        StorageIndex maxColStep = blockCols - blockOverlap;
-        StorageIndex numBlocks = matCols / maxColStep;
+        IndexType maxColStep = blockCols - blockOverlap;
+        IndexType numBlocks = matCols / maxColStep;
         this->blockMap.clear();
         this->blockOrder.clear();
         this->nonZeroQEstimate = 0;
-        StorageIndex rowIdx = 0;
-        StorageIndex colIdx = 0;
+        IndexType rowIdx = 0;
+        IndexType colIdx = 0;
         for (int i = 0; i < numBlocks; i++) {
           rowIdx = i * blockRows;
           colIdx = i * maxColStep;
@@ -298,7 +298,7 @@ namespace QRKit {
 
         // 2) Go through the estimated block structure
         // And merge several blocks together if needed/possible in order to form reasonably big banded blocks
-        this->mergeBlocks<StorageIndex>(this->blockOrder, this->blockMap, maxColStep);
+        this->mergeBlocks<IndexType>(this->blockOrder, this->blockMap, maxColStep);
       }
 
     private:
@@ -396,7 +396,7 @@ namespace QRKit {
     *  nthread >= 2 ... use multithreading with nthread threads
     */
     template <class Functor>
-    void parallel_for(const int bi, const int ei, Functor &f, size_t nthreads = 0) {
+    void parallel_for(const int bi, const int ei, const Functor &f, size_t nthreads = 0) {
 
       if (nthreads == 1) {
         /********************************* ST *****************************/

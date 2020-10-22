@@ -25,15 +25,6 @@
 #define VERIFY_IS_APPROX(x, y) (call_verify_is_approx(x, y))
 #define VERIFY_IS_EQUAL(x, y) (call_verify_is_equal(x, y))
 
-template<typename T1, typename T2>
-inline bool call_verify_is_approx(const T1 &x, const T2 &y) {
-	bool ret = verify_is_approx(x, y);
-	if (!ret) {
-		std::cerr << "Difference too large wrt tolerance!" << std::endl; // << get_test_precision(a) << ", relative error is: " << test_relative_error(a, b) << std::endl;
-	}
-	return ret;
-}
-
 // Define precisions for different types
 template<typename T> inline typename Eigen::NumTraits<T>::Real test_precision() { return Eigen::NumTraits<T>::dummy_precision(); }
 template<> inline float test_precision<float>() { return 1e-3f; }
@@ -71,6 +62,15 @@ inline bool verify_is_approx(const double &x, const double &y) {
 template <typename T1, typename T2>
 inline bool verify_is_approx(const T1 &x, const T2 &y, typename T1::Scalar* = 0) {
 	return x.isApprox(y, test_precision<typename T1::Scalar>());
+}
+
+template<typename T1, typename T2>
+inline bool call_verify_is_approx(const T1& x, const T2& y) {
+	bool ret = verify_is_approx(x, y);
+	if (!ret) {
+		std::cerr << "Difference too large wrt tolerance!" << std::endl; // << get_test_precision(a) << ", relative error is: " << test_relative_error(a, b) << std::endl;
+	}
+	return ret;
 }
 
 

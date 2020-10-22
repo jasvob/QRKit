@@ -31,7 +31,7 @@ namespace Eigen {
     namespace internal {
 
         // traits<BlockedThinQRBaseMatrixQ[Transpose]>
-        template <typename BlockedThinQRBaseType> struct Eigen::internal::traits<QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> >
+        template <typename BlockedThinQRBaseType> struct traits<QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> >
         {
             typedef typename BlockedThinQRBaseType::MatrixType ReturnType;
             typedef typename ReturnType::StorageIndex StorageIndex;
@@ -42,12 +42,12 @@ namespace Eigen {
             };
         };
 
-        template <typename BlockedThinQRBaseType> struct Eigen::internal::traits<QRKit::BlockedThinQRBaseMatrixQTransposeReturnType<BlockedThinQRBaseType> >
+        template <typename BlockedThinQRBaseType> struct traits<QRKit::BlockedThinQRBaseMatrixQTransposeReturnType<BlockedThinQRBaseType> >
         {
             typedef typename BlockedThinQRBaseType::MatrixType ReturnType;
         };
 
-        template <typename BlockedThinQRBaseType, typename Derived> struct Eigen::internal::traits<QRKit::BlockedThinQRBase_QProduct<BlockedThinQRBaseType, Derived> >
+        template <typename BlockedThinQRBaseType, typename Derived> struct traits<QRKit::BlockedThinQRBase_QProduct<BlockedThinQRBaseType, Derived> >
         {
             typedef typename Derived::PlainObject ReturnType;
         };
@@ -95,6 +95,7 @@ namespace QRKit {
     protected:
         typedef SparseSolverBase<BlockedThinQRBase<_MatrixType, _DenseBlockQR, _MatrixRType, _SuggestedBlockCols> > Base;
         using Base::m_isInitialized;
+
     public:
         using Base::_solve_impl;
         typedef _MatrixType MatrixType;
@@ -230,8 +231,8 @@ namespace QRKit {
             Index rank = this->rank();
 
             // Compute Q^T * b;
-            typename Dest::PlainObjecty = this->matrixQ().transpose() * B;
-            typename Dest::PlainObjectb = y;
+            typename Dest::PlainObject y = this->matrixQ().transpose() * B;
+            typename Dest::PlainObject b = y;
 
             // Solve with the triangular matrix R
             y.resize((std::max<Index>)(cols(), y.rows()), y.cols());
@@ -341,10 +342,10 @@ namespace QRKit {
     template <typename BlockedThinQRBaseType, typename Derived>
     struct BlockedThinQRBase_QProduct : ReturnByValue<BlockedThinQRBase_QProduct<BlockedThinQRBaseType, Derived> >
     {
-        typedef typename SparseMatrix<Scalar, ColMajor, Index> MatrixType;
+        typedef typename BlockedThinQRBaseType::Scalar Scalar;
+        typedef SparseMatrix<Scalar, ColMajor, Index > MatrixType;
         typedef typename BlockedThinQRBaseType::MatrixType DenseMatrixType;
         typedef typename BlockedThinQRBaseType::DenseVectorType DenseVectorType;
-        typedef typename BlockedThinQRBaseType::Scalar Scalar;
 
         typedef typename Eigen::internal::BlockedThinQRBase_traits<MatrixType>::Vector SparseVector;
 
@@ -381,7 +382,7 @@ namespace QRKit {
 
                 // Write the result back to j-th column of res
                 SparseVector resColJ = resColJd.sparseView();
-                for (SparseVector::InnerIterator it(resColJ); it; ++it) {
+                for (typename SparseVector::InnerIterator it(resColJ); it; ++it) {
                     tmp.coeffRef(it.row(), j) = it.value();
                 }
             }
@@ -498,7 +499,7 @@ namespace Eigen {
   namespace internal {
 
     template<typename BlockedThinQRBaseType>
-    struct Eigen::internal::evaluator_traits<QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> >
+    struct evaluator_traits<QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> >
     {
       typedef typename BlockedThinQRBaseType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
@@ -506,7 +507,7 @@ namespace Eigen {
     };
 
     template< typename DstXprType, typename BlockedThinQRBaseType>
-    struct Eigen::internal::Assignment<DstXprType, QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename DstXprType::Scalar>, Eigen::internal::Sparse2Sparse>
+    struct Assignment<DstXprType, QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType>, assign_op<typename DstXprType::Scalar, typename DstXprType::Scalar>, Sparse2Sparse>
     {
       typedef QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;
@@ -520,7 +521,7 @@ namespace Eigen {
     };
 
     template< typename DstXprType, typename BlockedThinQRBaseType>
-    struct Eigen::internal::Assignment<DstXprType, QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename DstXprType::Scalar>, Eigen::internal::Sparse2Dense>
+    struct Assignment<DstXprType, QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType>, assign_op<typename DstXprType::Scalar, typename DstXprType::Scalar>, Sparse2Dense>
     {
       typedef QRKit::BlockedThinQRBaseMatrixQReturnType<BlockedThinQRBaseType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;

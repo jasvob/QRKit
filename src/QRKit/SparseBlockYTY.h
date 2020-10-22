@@ -25,8 +25,8 @@ namespace QRKit {
 namespace Eigen {
     namespace internal {
 
-        // Eigen::internal::traits<BlockYTYProduct[Transpose]>
-        template <typename SparseBlockYTYType> struct Eigen::internal::traits<QRKit::SparseBlockYTYProductReturnType<SparseBlockYTYType> >
+        // traits<BlockYTYProduct[Transpose]>
+        template <typename SparseBlockYTYType> struct traits<QRKit::SparseBlockYTYProductReturnType<SparseBlockYTYType> >
         {
             typedef typename SparseBlockYTYType::MatrixType ReturnType;
             typedef typename ReturnType::StorageIndex StorageIndex;
@@ -37,12 +37,12 @@ namespace Eigen {
             };
         };
 
-        template <typename SparseBlockYTYType> struct Eigen::internal::traits<QRKit::SparseBlockYTYProductTransposeReturnType<SparseBlockYTYType> >
+        template <typename SparseBlockYTYType> struct traits<QRKit::SparseBlockYTYProductTransposeReturnType<SparseBlockYTYType> >
         {
             typedef typename SparseBlockYTYType::MatrixType ReturnType;
         };
 
-        template <typename SparseBlockYTYType, typename Derived> struct Eigen::internal::traits<QRKit::SparseBlockYTY_VecProduct<SparseBlockYTYType, Derived> >
+        template <typename SparseBlockYTYType, typename Derived> struct traits<QRKit::SparseBlockYTY_VecProduct<SparseBlockYTYType, Derived> >
         {
             typedef typename Derived::PlainObject ReturnType;
         };
@@ -72,11 +72,11 @@ namespace QRKit {
         typedef typename BlockYTY<ScalarType, IndexType>::MatrixType MatrixType;
 
         SparseBlockYTY()
-            : SparseBlockCOO(0, 0) {
+            : SparseBlockCOO<BlockYTY<ScalarType, IndexType>, IndexType>(0, 0) {
         }
 
         SparseBlockYTY(const IndexType& rows, const IndexType& cols)
-            : SparseBlockCOO(rows, cols) {
+            : SparseBlockCOO<BlockYTY<ScalarType, IndexType>, IndexType>(rows, cols) {
         }
 
         SparseBlockYTYProductReturnType<SparseBlockYTY> sequenceYTY() const {
@@ -196,7 +196,7 @@ namespace QRKit {
 namespace Eigen {
   namespace internal {
     template<typename SparseBlockYTYType>
-    struct Eigen::internal::evaluator_traits<QRKit::SparseBlockYTYProductReturnType<SparseBlockYTYType> >
+    struct evaluator_traits<QRKit::SparseBlockYTYProductReturnType<SparseBlockYTYType> >
     {
       typedef typename SparseBlockYTYType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;

@@ -105,9 +105,9 @@ namespace QRKit {
     virtual void compute(const MatrixType& mat)
     {
       // Reset variables in case this method is called multiple times
-      m_isInitialized = false;
-      m_factorizationIsok = false;
-      m_blocksYT.clear();
+      this->m_isInitialized = false;
+      this->m_factorizationIsok = false;
+      this->m_blocksYT.clear();
       this->m_nnzColPermIdxs.clear();
       this->m_zeroColPermIdxs.clear();
 
@@ -126,10 +126,10 @@ namespace QRKit {
       this->m_nonzeroPivots = 0;
 
       // Prepare m_R to be filled in
-      m_R.resize(this->m_pmatDense.rows(), this->m_pmatDense.cols());
-      m_R.setZero();
+      this->m_R.resize(this->m_pmatDense.rows(), this->m_pmatDense.cols());
+      this->m_R.setZero();
       // Reserve number of elements needed in case m_R is full upper triangular
-      m_R.reserve(this->m_pmatDense.cols() * this->m_pmatDense.cols() / 2.0);
+      this->m_R.reserve(this->m_pmatDense.cols() * this->m_pmatDense.cols() / 2.0);
 
       // And start factorizing block-by-block
       Index solvedCols = 0;
@@ -159,10 +159,10 @@ namespace QRKit {
       this->m_outputPerm_c = this->m_outputPerm_c * this->m_houseColPerm;
 
       // Don't forget to finalize m_R
-      m_R.finalize();
+      this->m_R.finalize();
             
-      m_isInitialized = true;
-      m_info = Success;
+      this->m_isInitialized = true;
+      this->m_info = Success;
     }
 
     virtual void analyzePattern(const MatrixType& mat, bool rowPerm = true, bool colPerm = true) {
@@ -172,47 +172,47 @@ namespace QRKit {
         SparseQROrdering::ColumnDensity<StorageIndex> colDenOrdering;
         colDenOrdering(mat, this->m_outputPerm_c);
 
-        m_pmat = mat * this->m_outputPerm_c;
+        this->m_pmat = mat * this->m_outputPerm_c;
       }
       else {
         this->m_outputPerm_c.setIdentity(mat.cols());
 
         // Don't waste time calling matrix multiplication if the permutation is identity
-        m_pmat = mat;
+        this->m_pmat = mat;
       }
 
       /******************************************************************/
       // Compute and store band information for each row in the matrix
       if (rowPerm) {
-        RowMajorMatrixType rmMat(m_pmat);
+        RowMajorMatrixType rmMat(this->m_pmat);
         SparseQROrdering::AsBandedAsPossible<StorageIndex> abapOrdering;
         abapOrdering(rmMat, this->m_rowPerm);
 
-        m_pmat = this->m_rowPerm * m_pmat;
+        this->m_pmat = this->m_rowPerm * this->m_pmat;
       }
       else {
-        this->m_rowPerm.setIdentity(m_pmat.rows());
+        this->m_rowPerm.setIdentity(this->m_pmat.rows());
 
         // Don't waste time calling matrix multiplication if the permutation is identity
       }
       /******************************************************************/
 
-      m_analysisIsok = true;
+      this->m_analysisIsok = true;
     }
 
     virtual void updateBlockInfo(const Index solvedCols, const MatrixType& mat, const Index newPivots, const Index blockCols = -1) {
       Index newCols = (blockCols > 0) ? blockCols : _SuggestedBlockCols;
       Index colIdx = solvedCols + newCols;
       Index numRows = 0;
-      if (colIdx >= m_pmat.cols()) {
-        colIdx = m_pmat.cols() - 1;
-        newCols = m_pmat.cols() - solvedCols;
-        numRows = m_pmat.rows() - this->m_nonzeroPivots;
+      if (colIdx >= this->m_pmat.cols()) {
+        colIdx = this->m_pmat.cols() - 1;
+        newCols = this->m_pmat.cols() - solvedCols;
+        numRows = this->m_pmat.rows() - this->m_nonzeroPivots;
       }
       else {
         typename MatrixType::StorageIndex biggestEndIdx = 0;
         for (int c = 0; c < newCols; c++) {
-          typename MatrixType::InnerIterator colIt(m_pmat, solvedCols + c);
+          typename MatrixType::InnerIterator colIt(this->m_pmat, solvedCols + c);
           typename MatrixType::StorageIndex endIdx = 0;
           if (colIt) {
             endIdx = colIt.index();
@@ -232,7 +232,7 @@ namespace QRKit {
         }
       }
 
-      this->denseBlockInfo = BlockBandedMatrixInfo::MatrixBlockInfo(this->m_nonzeroPivots, solvedCols, numRows, newCols);
+      this->denseBlockInfo = typename BlockBandedMatrixInfo::MatrixBlockInfo(this->m_nonzeroPivots, solvedCols, numRows, newCols);
     }
 
     virtual void factorize(DenseMatrixType& mat) {
@@ -260,7 +260,7 @@ namespace QRKit {
       this->computeBlockedRepresentation(houseqr, Y, T);
 
       // Save current Y and T. The block YTY contains a main diagonal and subdiagonal part separated by (numZeros) zero rows.
-      m_blocksYT.insert(typename SparseBlockYTYType::Element(this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, BlockYTY<Scalar, StorageIndex>(Y, T, this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, 0)));
+      this->m_blocksYT.insert(typename SparseBlockYTY<Scalar, StorageIndex>::Element(this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, BlockYTY<Scalar, StorageIndex>(Y, T, this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, 0)));
 
       // Update the trailing columns of the matrix block
       this->updateMat(this->denseBlockInfo.idxCol, m_pmatDense.cols(), m_pmatDense, this->m_blocksYT.size() - 1);
@@ -269,12 +269,12 @@ namespace QRKit {
       // m_nonzeroPivots is telling us where is the current diagonal position    
       // Don't forget to add the upper overlap (anything above the current diagonal element is already processed, but is part of R
       for (typename MatrixType::StorageIndex bc = 0; bc < this->denseBlockInfo.numCols; bc++) {
-        m_R.startVec(this->m_nonzeroPivots + bc);
+        this->m_R.startVec(this->m_nonzeroPivots + bc);
         for (typename MatrixType::StorageIndex br = 0; br < this->m_nonzeroPivots; br++) {
-          m_R.insertBack(br, this->m_nonzeroPivots + bc) = this->m_pmatDense(br, this->denseBlockInfo.idxCol + houseqr.colsPermutation().indices()(bc));
+          this->m_R.insertBack(br, this->m_nonzeroPivots + bc) = this->m_pmatDense(br, this->denseBlockInfo.idxCol + houseqr.colsPermutation().indices()(bc));
         }
         for (typename MatrixType::StorageIndex br = 0; br <= bc; br++) {
-          m_R.insertBack(this->m_nonzeroPivots + br, this->m_nonzeroPivots + bc) = houseqr.matrixQR()(br, bc);
+          this->m_R.insertBack(this->m_nonzeroPivots + br, this->m_nonzeroPivots + bc) = houseqr.matrixQR()(br, bc);
         }
       }
 

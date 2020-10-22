@@ -104,9 +104,9 @@ namespace QRKit {
     virtual void compute(const MatrixType& mat)
     {
       // Reset variables in case this method is called multiple times
-      m_isInitialized = false;
-      m_factorizationIsok = false;
-      m_blocksYT.clear();
+      this->m_isInitialized = false;
+      this->m_factorizationIsok = false;
+      this->m_blocksYT.clear();
       
       // Analyze input matrix pattern and perform row and column permutations
       // Stores input matrix to m_pmat
@@ -130,8 +130,8 @@ namespace QRKit {
       }
 
       this->m_nonzeroPivots = this->m_R.cols();
-      m_isInitialized = true;
-      m_info = Success;
+      this->m_isInitialized = true;
+      this->m_info = Success;
     }
     virtual void analyzePattern(const MatrixType& mat, bool rowPerm = true, bool colPerm = true) {
       // No column permutation here
@@ -140,7 +140,7 @@ namespace QRKit {
       // And no row permutatio neither
       this->m_rowPerm.setIdentity(mat.rows());
 
-      m_analysisIsok = true;
+      this->m_analysisIsok = true;
     }
 
     virtual void updateBlockInfo(const Index solvedCols, const MatrixType& mat, const Index newPivots, const Index blockCols = -1) {
@@ -153,7 +153,7 @@ namespace QRKit {
         numRows = mat.rows() - solvedCols;
       }
 
-      this->denseBlockInfo = BlockBandedMatrixInfo::MatrixBlockInfo(solvedCols, numRows, newCols);
+      this->denseBlockInfo = typename BlockBandedMatrixInfo::MatrixBlockInfo(solvedCols, numRows, newCols);
     }
 
     virtual void factorize(DenseMatrixType& mat) {
@@ -169,7 +169,7 @@ namespace QRKit {
       this->computeBlockedRepresentation(houseqr, Y, T);
 
       // Save current Y and T. The block YTY contains a main diagonal and subdiagonal part separated by (numZeros) zero rows.
-      m_blocksYT.insert(SparseBlockYTYType::Element(this->denseBlockInfo.idxRow, this->denseBlockInfo.idxRow, BlockYTY<Scalar, StorageIndex>(Y, T, this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, 0)));
+      this->m_blocksYT.insert(typename SparseBlockYTY<Scalar, StorageIndex>::Element(this->denseBlockInfo.idxRow, this->denseBlockInfo.idxRow, BlockYTY<Scalar, StorageIndex>(Y, T, this->denseBlockInfo.idxRow, this->denseBlockInfo.idxCol, 0)));
 
       // Update the trailing columns of the matrix block
       this->updateMat(this->denseBlockInfo.idxRow, mat.cols(), mat, this->m_blocksYT.size() - 1);

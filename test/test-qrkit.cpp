@@ -33,7 +33,7 @@ template <typename MatrixType>
 class ColPivHouseholderQRWrapper : public ColPivHouseholderQR<MatrixType> {
 public:
   // Need to define MatrixQType and MatrixRType for the sparse QR solvers
-  typedef Matrix<Scalar, RowsAtCompileTime, RowsAtCompileTime> MatrixQType;
+  typedef Matrix<Scalar, MatrixType::RowsAtCompileTime, MatrixType::RowsAtCompileTime> MatrixQType;
   typedef MatrixType MatrixRType;
 };
 

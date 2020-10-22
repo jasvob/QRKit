@@ -46,7 +46,7 @@ namespace QRKit {
     typedef std::vector<BlockMatrixType> BlockVec;
     typedef typename BlockMatrixType::RealScalar RealScalar;
     typedef typename BlockMatrixType::Scalar Scalar;
-    typedef typename _StorageIndex StorageIndex;
+    typedef _StorageIndex StorageIndex;
     typedef typename BlockMatrixType::Index Index;
     typedef PermutationMatrix<Dynamic, Dynamic, StorageIndex> PermutationType;
 
@@ -80,7 +80,7 @@ namespace QRKit {
 
       // Feed matrix into the memory efficient storage
       int numBlocks = blockInfo.blockOrder.size();
-      BlockDiagonalMatrixInfo::MatrixBlockInfo bi;
+      typename BlockDiagonalMatrixInfo::MatrixBlockInfo bi;
       for (int i = 0; i < numBlocks; i++) {
         bi = blockInfo.blockMap.at(blockInfo.blockOrder.at(i));
 
@@ -107,7 +107,7 @@ namespace QRKit {
       Looking for as-banded-as-possible structure in the matrix
       Expecting to form something block diagonal in this case
       */
-      SparseQROrdering::AsBandedAsPossible<IndexType> abapOrdering;
+      SparseQROrdering::AsBandedAsPossible<StorageIndex> abapOrdering;
       RowMajorMatrixType rmMat(mat);
       abapOrdering(rmMat, rowPerm);
 
@@ -121,7 +121,7 @@ namespace QRKit {
 
       // Feed matrix into the memory efficient storage
       int numBlocks = blockInfo.blockOrder.size();
-      BlockDiagonalMatrixInfo::MatrixBlockInfo bi;
+      typename BlockDiagonalMatrixInfo::MatrixBlockInfo bi;
       for (int i = 0; i < numBlocks; i++) {
         bi = blockInfo.blockMap.at(blockInfo.blockOrder.at(i));
 

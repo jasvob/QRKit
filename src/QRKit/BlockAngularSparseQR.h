@@ -29,7 +29,7 @@ namespace Eigen {
     namespace internal {
 
         // traits<SparseQRMatrixQ[Transpose]>
-        template <typename SparseQRType> struct Eigen::internal::traits<QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
+        template <typename SparseQRType> struct traits<QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
         {
             typedef typename SparseQRType::MatrixType ReturnType;
             typedef typename ReturnType::StorageIndex StorageIndex;
@@ -40,12 +40,12 @@ namespace Eigen {
             };
         };
 
-        template <typename SparseQRType> struct Eigen::internal::traits<QRKit::BlockAngularSparseQRMatrixQTransposeReturnType<SparseQRType> >
+        template <typename SparseQRType> struct traits<QRKit::BlockAngularSparseQRMatrixQTransposeReturnType<SparseQRType> >
         {
             typedef typename SparseQRType::MatrixType ReturnType;
         };
 
-        template <typename SparseQRType, typename Derived> struct Eigen::internal::traits<QRKit::BlockAngularSparseQR_QProduct<SparseQRType, Derived> >
+        template <typename SparseQRType, typename Derived> struct traits<QRKit::BlockAngularSparseQR_QProduct<SparseQRType, Derived> >
         {
             typedef typename Derived::PlainObject ReturnType;
         };
@@ -338,7 +338,7 @@ namespace QRKit {
         /***********************************************************************************************************/
         template<typename SolverType, typename MatrixType, bool Inverse = false>
         static void applyRowPermutation(const SolverType& slvr, MatrixType& mat) {
-            SolverType::PermutationType perm = SparseQRUtils::rowsPermutation<SolverType, typename SolverType::PermutationType>(slvr);
+            typename SolverType::PermutationType perm = SparseQRUtils::rowsPermutation<SolverType, typename SolverType::PermutationType>(slvr);
             if (Inverse) {
                 mat = perm.inverse() * mat;
             }
@@ -349,7 +349,7 @@ namespace QRKit {
 
         template<typename SolverType, typename MatrixType>
         static void copyRowPermutation(const SolverType& slvr, MatrixType& rowPerm, const int offset, const int length) {
-            SolverType::PermutationType perm = SparseQRUtils::rowsPermutation<SolverType, typename SolverType::PermutationType>(slvr);
+            typename SolverType::PermutationType perm = SparseQRUtils::rowsPermutation<SolverType, typename SolverType::PermutationType>(slvr);
             for (Index j = offset; j < offset + length; j++) {
                 rowPerm.indices()(j, 0) = perm.indices()(j - offset, 0);
             }
@@ -360,7 +360,7 @@ namespace QRKit {
         template <typename RightBlockSolver, typename LeftBlockSolver, typename StorageIndex, typename MatType>
         void solveRightBlock(const int m1, const int m2, const int n1, const int n2, MatType& J2, const DenseMatrixType& mat, RightBlockSolver& rightSolver, LeftBlockSolver& leftSolver) {
             MatType J2toprows = mat.topRows(n1);
-            applyRowPermutation<LeftBlockSolver, MatType>(leftSolver, J2toprows);
+            BlockAngularSparseQR::applyRowPermutation<LeftBlockSolver, MatType>(leftSolver, J2toprows);
 
             J2.topRows(n1).noalias() = leftSolver.matrixQ().transpose() * J2toprows;
             J2.bottomRows(n2) = mat.bottomRows(n2);
@@ -371,7 +371,7 @@ namespace QRKit {
         template <typename RightBlockSolver, typename LeftBlockSolver, typename StorageIndex, typename MatType>
         void solveRightBlock(const int m1, const int m2, const int n1, const int n2, MatType& J2, const SparseMatrix<Scalar, RowMajor, StorageIndex>& mat, RightBlockSolver& rightSolver, LeftBlockSolver& leftSolver) {
             MatType J2toprows = mat.topRows(n1).toDense();
-            applyRowPermutation<LeftBlockSolver, MatType>(leftSolver, J2toprows);
+            BlockAngularSparseQR::applyRowPermutation<LeftBlockSolver, MatType>(leftSolver, J2toprows);
 
             J2.topRows(n1).noalias() = leftSolver.matrixQ().transpose() * J2toprows;
             J2.bottomRows(n2) = mat.bottomRows(n2);
@@ -385,7 +385,7 @@ namespace QRKit {
             SparseMatrix<Scalar, RowMajor, StorageIndex> rmJ2(J2);
             SparseMatrix<Scalar, RowMajor, StorageIndex> rmJ2TopRows = rmJ2.topRows(n1);
 
-            applyRowPermutation<LeftBlockSolver, SparseMatrix<Scalar, RowMajor, StorageIndex> >(leftSolver, rmJ2TopRows);
+            BlockAngularSparseQR::applyRowPermutation<LeftBlockSolver, SparseMatrix<Scalar, RowMajor, StorageIndex> >(leftSolver, rmJ2TopRows);
 
             SparseMatrix<Scalar, ColMajor, StorageIndex> J2TopRows = leftSolver.matrixQ().transpose() * rmJ2TopRows;
             rmJ2.topRows(n1) = J2TopRows;
@@ -431,9 +431,9 @@ namespace QRKit {
     void BlockAngularSparseQR<BlockQRSolverLeft, BlockQRSolverRight>::analyzePattern(const BlockMatrix1x2<LeftBlockMatrixType, RightBlockMatrixType>& mat)
     {
         // The left block should be the bigger one, don't check for sparsity now
-        eigen_assert(mat.leftBlock().cols() > mat.rightBlock().cols())
-            // The blocks should have the same number of rows
-            eigen_assert(mat.leftBlock().rows() == mat.rightBlock().rows());
+        eigen_assert(mat.leftBlock().cols() > mat.rightBlock().cols());
+        // The blocks should have the same number of rows
+        eigen_assert(mat.leftBlock().rows() == mat.rightBlock().rows());
 
         StorageIndex n = mat.cols();
         m_outputPerm_c.resize(n);
@@ -552,7 +552,7 @@ namespace QRKit {
                 MatrixType resTopRows = m_qr.m_leftSolver.matrixQ().transpose() * otherTopRows;
                 res.topRows(n1) = resTopRows;
                 MatrixType resBottomRows = res.bottomRows(n - m1);
-                applyRowPermutation<SparseQRType::BlockQRSolverRight, MatrixType>(m_qr.m_rightSolver, resBottomRows);
+                SparseQRType::template applyRowPermutation<typename SparseQRType::BlockQRSolverRight, MatrixType>(m_qr.m_rightSolver, resBottomRows);
                 MatrixType Q2v2 = m_qr.m_rightSolver.matrixQ().transpose() * resBottomRows;
                 res.bottomRows(n - m1) = Q2v2;
             }
@@ -568,7 +568,7 @@ namespace QRKit {
                 res = m_other;
                 MatrixType resBottomRows = res.bottomRows(n - m1);
                 MatrixType Q2v2 = m_qr.m_rightSolver.matrixQ() * resBottomRows;
-                applyRowPermutation<SparseQRType::BlockQRSolverRight, MatrixType, true>(m_qr.m_rightSolver, Q2v2);
+                SparseQRType::template applyRowPermutation<typename SparseQRType::BlockQRSolverRight, MatrixType, true>(m_qr.m_rightSolver, Q2v2);
                 res.bottomRows(n - m1) = Q2v2;
                 res.topRows(n1) = m_qr.m_leftSolver.matrixQ() * res.topRows(n1);
             }
@@ -619,7 +619,7 @@ namespace QRKit {
                 DenseVectorType resTopRows = m_qr.m_leftSolver.matrixQ().transpose() * otherTopRows;
                 res.topRows(n1) = resTopRows;
                 DenseVectorType resBottomRows = res.bottomRows(n - m1);
-                SparseQRType::applyRowPermutation<SparseQRType::BlockQRSolverRight, DenseVectorType>(m_qr.m_rightSolver, resBottomRows);
+                SparseQRType::template applyRowPermutation<typename SparseQRType::BlockQRSolverRight, DenseVectorType>(m_qr.m_rightSolver, resBottomRows);
                 DenseVectorType Q2v2 = m_qr.m_rightSolver.matrixQ().transpose() * resBottomRows;
                 res.bottomRows(n - m1) = Q2v2;
             }
@@ -635,7 +635,7 @@ namespace QRKit {
                 res = m_other;
                 DenseVectorType resBottomRows = res.bottomRows(n - m1);
                 DenseVectorType Q2v2 = m_qr.m_rightSolver.matrixQ() * resBottomRows;
-                SparseQRType::applyRowPermutation<SparseQRType::BlockQRSolverRight, DenseVectorType, true>(m_qr.m_rightSolver, Q2v2);
+                SparseQRType::template applyRowPermutation<typename SparseQRType::BlockQRSolverRight, DenseVectorType, true>(m_qr.m_rightSolver, Q2v2);
                 res.bottomRows(n - m1) = Q2v2;
                 DenseVectorType topRows = res.topRows(n1);
                 topRows = m_qr.m_leftSolver.matrixQ() * topRows;
@@ -705,7 +705,7 @@ namespace Eigen {
   namespace internal {
 
     template<typename SparseQRType>
-    struct Eigen::internal::evaluator_traits<QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
+    struct evaluator_traits<QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> >
     {
       typedef typename SparseQRType::MatrixType MatrixType;
       typedef typename storage_kind_to_evaluator_kind<typename MatrixType::StorageKind>::Kind Kind;
@@ -713,7 +713,7 @@ namespace Eigen {
     };
 
     template< typename DstXprType, typename SparseQRType>
-    struct Eigen::internal::Assignment<DstXprType, QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Eigen::internal::Sparse2Sparse>
+    struct Assignment<DstXprType, QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>, assign_op<typename DstXprType::Scalar, typename QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Sparse2Sparse>
     {
       typedef QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;
@@ -727,7 +727,7 @@ namespace Eigen {
     };
 
     template< typename DstXprType, typename SparseQRType>
-    struct Eigen::internal::Assignment<DstXprType, QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>, Eigen::internal::assign_op<typename DstXprType::Scalar, typename QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Eigen::internal::Sparse2Dense>
+    struct Assignment<DstXprType, QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>, assign_op<typename DstXprType::Scalar, typename QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType>::Scalar>, Sparse2Dense>
     {
       typedef QRKit::BlockAngularSparseQRMatrixQReturnType<SparseQRType> SrcXprType;
       typedef typename DstXprType::Scalar Scalar;

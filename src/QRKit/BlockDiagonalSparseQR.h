@@ -91,7 +91,7 @@ class BlockDiagonalSparseQR : public SparseSolverBase<BlockDiagonalSparseQR<_Blo
       * forcePatternAnalysis - if true, forces reruning pattern analysis of the input matrix
       * \sa analyzePattern(), factorize()
       */
-    void compute(const MatrixType& mat, PermutationType &rowPerm = PermutationType(), bool forcePatternAlaysis = false)
+    void compute(const MatrixType& mat, const PermutationType &rowPerm = PermutationType(), bool forcePatternAlaysis = false)
     {
       analyzePattern(mat, rowPerm);
 
@@ -100,7 +100,7 @@ class BlockDiagonalSparseQR : public SparseSolverBase<BlockDiagonalSparseQR<_Blo
       m_factorizationIsok = false;
       factorize(mat);
     }
-    void analyzePattern(const MatrixType& mat, PermutationType &rowPerm = PermutationType());
+    void analyzePattern(const MatrixType& mat, const PermutationType &rowPerm = PermutationType());
     void factorize(const MatrixType& mat);
 
     /** \returns the number of rows of the represented matrix.
@@ -389,7 +389,7 @@ struct SparseQRUtils::HasRowsPermutation<BlockDiagonalSparseQR<_BlockQRSolver, _
 * \note In this step it is assumed that there is no empty row in the matrix \a mat.
 */
 template <typename BlockQRSolver, int QFormat>
-void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::analyzePattern(const MatrixType& mat, PermutationType &rowPerm) {
+void BlockDiagonalSparseQR<BlockQRSolver, QFormat>::analyzePattern(const MatrixType& mat, const PermutationType &rowPerm) {
   // Save possible row permutation
   if (rowPerm.rows() == 0) {
     // If there's no row permutation given, set it to identity
