@@ -1,0 +1,2 @@
+# Copy this to user.cmake, updating the path to point to your Eigen install
+set(Eigen3_DIR "/path/to/my/eigen/")
