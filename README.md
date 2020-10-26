@@ -5,6 +5,16 @@ This repository contains implementation of our WACV 2018 work [QRkit: Sparse, Co
 
 QRKit is an extension of Eigen C++ library that allows for efficient QR decomposition of sparse matrices with common sparsity patterns.
 
+## Building
+```sh
+$ cp user.cmake.in user.cmake
+$ vi user.cmake # Edit user.cmake to point to your Eigen distro
+$ mkdir build
+$ cd build
+$ cmake ..
+$ cmake --build .
+```
+
 ## Common sparsity patterns
 The common sparsity patterns QRKit can bring significant speed-up for are shown below.
 <p float="left">

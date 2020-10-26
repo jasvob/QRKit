@@ -10,7 +10,7 @@
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-// import basic and product tests for deprectaed DynamicSparseMatrix
+// import basic and product tests for deprecated DynamicSparseMatrix
 #define EIGEN_NO_DEPRECATED_WARNING
 
 #include <iostream>
@@ -31,29 +31,15 @@
 using namespace Eigen;
 using namespace QRKit;
 
+// Eigen's better DenseQR:
+typedef ColPivHouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > DenseQR;
+
 typedef int IndexType;
 
 typedef double Scalar;
 
-typedef SparseMatrix<Scalar, ColMajor, IndexType> MatrixType;
+typedef SparseMatrix<Scalar, ColMajor, IndexType> JacobianType;
 typedef Matrix<Scalar, Dynamic, Dynamic> DenseMatrixType;
-typedef MatrixType JacobianType;
-
-struct Ellipse {
-  Ellipse()
-    : a(1), b(1), x0(0), y0(0), r(1) {
-  }
-
-  Ellipse(const double a, const double b, const double x0, const double y0, const double r)
-    : a(a), b(b), x0(x0), y0(y0), r(r) {
-  }
-
-  double a;
-  double b;
-  double x0;
-  double y0;
-  double r;
-};
 
 template <typename _Scalar>
 struct EllipseFitting : SparseFunctor<_Scalar, IndexType>
@@ -73,7 +59,8 @@ struct EllipseFitting : SparseFunctor<_Scalar, IndexType>
   }
 
   // Functor functions
-  int operator()(const InputType& uv, ValueType& fvec) const {
+  int operator()(const InputType& uv, ValueType& fvec) const 
+  {
     // Ellipse parameters are the last 5 entries
     auto params = uv.tail(nParamsModel);
     double a = params[0];
@@ -95,7 +82,8 @@ struct EllipseFitting : SparseFunctor<_Scalar, IndexType>
   }
 
   // Functor jacobian
-  int df(const InputType& uv, JacobianType& fjac) {
+  int df(const InputType& uv, JacobianType& fjac)
+  {
     // X_i - (a*cos(t_i) + x0)
     // Y_i - (b*sin(t_i) + y0)
     int npoints = ellipsePoints.cols();
@@ -127,19 +115,20 @@ struct EllipseFitting : SparseFunctor<_Scalar, IndexType>
 
 template <typename _Scalar>
 struct SparseBlockDiagonalQR_EllipseFitting : public EllipseFitting<_Scalar> {
-  typedef Matrix<Scalar, 2, 1> DenseMatrix2x1;
   // QR for J1 subblocks is 2x1
+  typedef Matrix<Scalar, 2, 1> DenseMatrix2x1;
   typedef ColPivHouseholderQR<DenseMatrix2x1> DenseQRSolver2x1;
   // QR for J1 is block diagonal
   typedef BlockDiagonalSparseQR<DenseQRSolver2x1> LeftSuperBlockSolver;
   // QR for J1'J2 is general dense (faster than general sparse by about 1.5x for n=500K)
-  typedef ColPivHouseholderQR<Matrix<Scalar, Dynamic, Dynamic> > RightSuperBlockSolver;
+  typedef DenseQR RightSuperBlockSolver;
   
   class QRSolver : public BlockAngularSparseQR<LeftSuperBlockSolver, RightSuperBlockSolver> {
-    const int RightBlockColumns = 5;
+    const int RightBlockColumns = nParamsModel;
   public:
     // Solver has to know how to treat input general SparseMatrix
-    QRSolver(const JacobianType& mat) {
+    QRSolver(const JacobianType& mat) 
+    {
       // Left block is sparse block diagonal matrix
       JacobianType leftBlock = mat.block(0, 0, mat.rows(), mat.cols() - RightBlockColumns);
       SparseBlockDiagonal<DenseMatrix2x1> leftBlockDiag;
@@ -158,7 +147,8 @@ struct SparseBlockDiagonalQR_EllipseFitting : public EllipseFitting<_Scalar> {
 };
 
 template <typename _Scalar>
-struct SparseBlockBandedQR_EllipseFitting : public EllipseFitting<_Scalar> {
+struct SparseBlockBandedQR_EllipseFitting : public EllipseFitting<_Scalar> 
+{
   typedef Matrix<Scalar, 2, 1> DenseMatrix2x1;
   typedef HouseholderQR<DenseMatrix2x1> BandBlockQRSolver;
   typedef BandedBlockedSparseQR<JacobianType, BandBlockQRSolver, 0, 8, false> BandedBlockedQRSolver;
@@ -172,7 +162,8 @@ struct SparseBlockBandedQR_EllipseFitting : public EllipseFitting<_Scalar> {
     const int RightBlockColumns = 5;
   public:
     // Solver has to know how to treat input general SparseMatrix
-    QRSolver(const JacobianType& mat) {
+    QRSolver(const JacobianType& mat)
+    {
       // Left block is general SparseMatrix
       JacobianType leftBlock = mat.block(0, 0, mat.rows(), mat.cols() - RightBlockColumns);
       // Right block is general DenseMatrix
@@ -190,7 +181,8 @@ struct SparseBlockBandedQR_EllipseFitting : public EllipseFitting<_Scalar> {
 
 typedef EllipseFitting<Scalar>::InputType ParamsType;
 
-void printParamsHeader() {
+void printParamsHeader() 
+{
   std::cout << "a \t";
   std::cout << "b \t";
   std::cout << "x0\t";
@@ -200,65 +192,68 @@ void printParamsHeader() {
   std::cout << std::endl;
 }
 
-void printParams(ParamsType &params, int nDataPoints, double duration = -1.) {
-  /*
-  std::cout << "a=" << params(nDataPoints) << "\t";
-  std::cout << "b=" << params(nDataPoints + 1) << "\t";
-  std::cout << "x0=" << params(nDataPoints + 2) << "\t";
-  std::cout << "y0=" << params(nDataPoints + 3) << "\t";
-  std::cout << "r=" << params(nDataPoints + 4)*180. / EIGEN_PI << "\t";
-  */
-  std::cout << params(nDataPoints) << "\t";
-  std::cout << params(nDataPoints + 1) << "\t";
-  std::cout << params(nDataPoints + 2) << "\t";
-  std::cout << params(nDataPoints + 3) << "\t";
-  std::cout << params(nDataPoints + 4)*180. / EIGEN_PI << "\t";
+void printParams(ParamsType &params, int npoints, double duration = -1.) 
+{
+  std::cout << params(npoints) << "\t";
+  std::cout << params(npoints + 1) << "\t";
+  std::cout << params(npoints + 2) << "\t";
+  std::cout << params(npoints + 3) << "\t";
+  std::cout << params(npoints + 4)*180. / EIGEN_PI << "\t";
   if (duration >= 0) {
     std::cout << duration << "s";
   }
   std::cout << std::endl;
 }
 
-void initializeParams(int nDataPoints, const Matrix2Xd &ellipsePoints, double incr, ParamsType &params) {
-  params.resize(EllipseFitting<Scalar>::nParamsModel + nDataPoints);
+void initializeParams(const Matrix2Xd &ellipsePoints, double incr, ParamsType &params) 
+{
+  int npoints = ellipsePoints.cols(); 
+  
+  params.resize(EllipseFitting<Scalar>::nParamsModel + npoints);
+ 
+  // TODO: use Eigen's max/min over columns mat.colwise().maxCoeff() 
   double minX, minY, maxX, maxY;
   minX = maxX = ellipsePoints(0, 0);
   minY = maxY = ellipsePoints(1, 0);
-  for (int i = 0; i<ellipsePoints.cols(); i++) {
-    minX = (std::min)(minX, ellipsePoints(0, i));
-    maxX = (std::max)(maxX, ellipsePoints(0, i));
-    minY = (std::min)(minY, ellipsePoints(1, i));
-    maxY = (std::max)(maxY, ellipsePoints(1, i));
+  for (int i = 0; i<npoints; i++) {
+    minX = min(minX, ellipsePoints(0, i));
+    maxX = max(maxX, ellipsePoints(0, i));
+    minY = min(minY, ellipsePoints(1, i));
+    maxY = max(maxY, ellipsePoints(1, i));
   }
-  params(ellipsePoints.cols()) = 0.5*(maxX - minX);
-  params(ellipsePoints.cols() + 1) = 0.5*(maxY - minY);
-  params(ellipsePoints.cols() + 2) = 0.5*(maxX + minX);
-  params(ellipsePoints.cols() + 3) = 0.5*(maxY + minY);
-  params(ellipsePoints.cols() + 4) = 0;
-  for (int i = 0; i<ellipsePoints.cols(); i++) {
+  params(npoints) = 0.5*(maxX - minX);
+  params(npoints + 1) = 0.5*(maxY - minY);
+  params(npoints + 2) = 0.5*(maxX + minX);
+  params(npoints + 3) = 0.5*(maxY + minY);
+  params(npoints + 4) = 0;
+  for (int i = 0; i<npoints; i++) {
     params(i) = Scalar(i)*incr;
   }
 }
 
-void checkParamsAmbiguity(const Matrix2Xd &ellipsePoints, ParamsType &params) {
+void checkParamsAmbiguity(const Matrix2Xd &ellipsePoints, ParamsType &params)
+{
+  int npoints = ellipsePoints.cols();
+
   // check parameters ambiguity before test result
   // a should be bigger than b
-  if (fabs(params(ellipsePoints.cols() + 1)) > fabs(params(ellipsePoints.cols()))) {
-    std::swap(params(ellipsePoints.cols()), params(ellipsePoints.cols() + 1));
-    params(ellipsePoints.cols() + 4) -= 0.5*EIGEN_PI;
+  if (fabs(params(npoints + 1)) > fabs(params(npoints))) {
+    std::swap(params(npoints), params(npoints + 1));
+    params(npoints + 4) -= 0.5*EIGEN_PI;
   }
   // a and b should be positive
-  if (params(ellipsePoints.cols())<0) {
-    params(ellipsePoints.cols()) *= -1.;
-    params(ellipsePoints.cols() + 1) *= -1.;
-    params(ellipsePoints.cols() + 4) += EIGEN_PI;
+  if (params(npoints)<0) {
+    params(npoints) *= -1.;
+    params(npoints + 1) *= -1.;
+    params(npoints + 4) += EIGEN_PI;
   }
   // fix rotation angle range
-  while (params(ellipsePoints.cols() + 4) < 0) params(ellipsePoints.cols() + 4) += 2.*EIGEN_PI;
-  while (params(ellipsePoints.cols() + 4) > EIGEN_PI) params(ellipsePoints.cols() + 4) -= EIGEN_PI;
+  while (params(npoints + 4) < 0) params(npoints + 4) += 2.*EIGEN_PI;
+  while (params(npoints + 4) > EIGEN_PI) params(npoints + 4) -= EIGEN_PI;
 }
 
-void test_block_diagonal(const Ellipse &el, const Matrix2Xd &ellipsePoints, ParamsType &params) {
+void test_block_diagonal(const Ellipse &el, const Matrix2Xd &ellipsePoints, ParamsType &params)
+{
   Eigen::LevenbergMarquardtSpace::Status info;
   typedef SparseBlockDiagonalQR_EllipseFitting<Scalar>  SparseBlockDiagonalQRFunctor;
   SparseBlockDiagonalQRFunctor functor3(ellipsePoints);
@@ -274,7 +269,8 @@ void test_block_diagonal(const Ellipse &el, const Matrix2Xd &ellipsePoints, Para
   VERIFY_IS_APPROX(el.r, params(ellipsePoints.cols() + 4));
 }
 
-void test_banded_blocked(const Ellipse &el, const Matrix2Xd &ellipsePoints, ParamsType &params) {
+void test_banded_blocked(const Ellipse &el, const Matrix2Xd &ellipsePoints, ParamsType &params)
+{
   Eigen::LevenbergMarquardtSpace::Status info;
   typedef SparseBlockBandedQR_EllipseFitting<Scalar>  SparseBlockBandedQRFunctor;
   SparseBlockBandedQRFunctor functor4(ellipsePoints);
@@ -290,26 +286,36 @@ void test_banded_blocked(const Ellipse &el, const Matrix2Xd &ellipsePoints, Para
   VERIFY_IS_APPROX(el.r, params(ellipsePoints.cols() + 4));
 }
 
-void test_sparse_qr_extra_lm_fitting() {
+// TODO: this looks like it's not used below?
+struct Ellipse {
+  Ellipse()
+    : a(1), b(1), x0(0), y0(0), r(1) {
+  }
+
+  Ellipse(const double a, const double b, const double x0, const double y0, const double r)
+    : a(a), b(b), x0(x0), y0(y0), r(r) {
+  }
+
+  double a;
+  double b;
+  double x0;
+  double y0;
+  double r;
+};
+
+void test_sparse_qr_extra_lm_fitting()
+{
   const int NumSamplePoints = 50000;
-  // Create the ellipse paramteers and data points
+  // Create the ellipse parameters and data points
   // ELLIPSE PARAMETERS
   Ellipse el(7.5, 2, 17, 23., 0.23);
-  /*
-  double a, b, x0, y0, r;
-  a = 7.5;
-  b = 2;
-  x0 = 17.;
-  y0 = 23.;
-  r = 0.23;
-  */
 
   // CREATE DATA SAMPLES
-  int nDataPoints = NumSamplePoints;
+  int npoints = NumSamplePoints;
   Matrix2Xd ellipsePoints;
-  ellipsePoints.resize(2, nDataPoints);
-  Scalar incr = 1.3*EIGEN_PI / Scalar(nDataPoints);
-  for (int i = 0; i<nDataPoints; i++) {
+  ellipsePoints.resize(2, npoints);
+  Scalar incr = 1.3*EIGEN_PI / Scalar(npoints);
+  for (int i = 0; i<npoints; i++) {
     Scalar t = Scalar(i)*incr;
     ellipsePoints(0, i) = el.x0 + el.a*cos(t)*cos(el.r) - el.b*sin(t)*sin(el.r);
     ellipsePoints(1, i) = el.y0 + el.a*cos(t)*sin(el.r) + el.b*sin(t)*cos(el.r);
@@ -318,11 +324,11 @@ void test_sparse_qr_extra_lm_fitting() {
 
   // Test LM with block diagonal solver
   ParamsType params;
-  initializeParams(nDataPoints, ellipsePoints, incr, params);
+  initializeParams(ellipsePoints, incr, params);
   CALL_SUBTEST_1(test_block_diagonal(el, ellipsePoints, params));
 
 
   // Test LM with banded blocked solver
-  initializeParams(nDataPoints, ellipsePoints, incr, params);
+  initializeParams(ellipsePoints, incr, params);
   CALL_SUBTEST_2(test_banded_blocked(el, ellipsePoints, params));
 }
